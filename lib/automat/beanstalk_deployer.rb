@@ -171,8 +171,9 @@ module Automat
       opts = {
         application_name: name,
         environment_name: eb_environment_name,
-        version_label: version,
-        template_name: configuration_template
+        version_label:    version,
+        template_name:    configuration_template,
+        cname_prefix:     eb_environment_name
       }
 
       response = eb.create_environment opts
