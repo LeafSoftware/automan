@@ -74,34 +74,5 @@ describe Automat::BeanstalkDeployer do
       bd.version_exists?.should be_false
     end
   end
-
-  describe '#environment_exists?' do
-    subject(:bd) do
-      AWS.stub!
-      bd = Automat::BeanstalkDeployer.new
-      bd.eb = AWS::ElasticBeanstalk::Client.new
-      bd.name = 'foo'
-      bd.environment = 'dev'
-      bd.log_aws_calls = false
-      bd
-    end
-
-    it "is true when environment is in response" do
-      resp = bd.eb.stub_for :describe_environments
-      resp.data[:environments] = [
-        {environment_name: bd.eb_environment_name}
-      ]
-      bd.environment_exists?.should be_true
-    end
-
-    it "is false when environment is not in response" do
-      resp = bd.eb.stub_for :describe_environments
-      resp.data[:environments] = [
-        {environment_name: 'bar-prd'}
-      ]
-      bd.environment_exists?.should be_false
-    end
-
-  end
 end
 

@@ -2,6 +2,10 @@ require 'aws-sdk'
 require 'pathname'
 require 'logger'
 
+#
+# TODO: check status of environments and only update if status is 'Ready'
+#
+
 module Automat
   class BeanstalkDeployer
     attr_accessor :name,
@@ -127,7 +131,13 @@ module Automat
       end
     end
 
-    def environment_exists?
+    # Possible status states:
+    # Launching
+    # Updating
+    # Ready
+    # Terminating
+    # Terminated
+    def environment_status
       opts = {
         environment_names: [eb_environment_name]
       }
@@ -139,13 +149,14 @@ module Automat
         exit 1
       end
 
+      status = nil
       response.data[:environments].each do |env|
         if env[:environment_name] == eb_environment_name
-          return true
+          status = env[:status]
+          break
         end
       end
-
-      return false
+      status
     end
 
     def update_environment
@@ -199,10 +210,14 @@ module Automat
         create_version
       end
 
-      if environment_exists?
+      case environment_status
+      when nil
+        create_environment
+      when "Ready"
         update_environment
       else
-        create_environment
+        logger.error "Could not update environment as it's status is #{environment_status}"
+        exit 1
       end
 
       logger.info "Finished deploying service."
