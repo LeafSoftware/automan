@@ -211,7 +211,7 @@ module Automat
       end
 
       case environment_status
-      when nil
+      when nil, "Terminated"
         create_environment
       when "Ready"
         update_environment
