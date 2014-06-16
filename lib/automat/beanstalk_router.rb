@@ -7,9 +7,14 @@ module Automat
 
     include Automat::Mixins::AwsCaller
 
-    def initialize
+    def initialize(options=nil)
       @logger = Logger.new(STDOUT)
       @log_aws_calls = false
+
+      if !options.nil?
+        @environment_name = options[:environment_name]
+        @hosted_zone_name = options[:hosted_zone_name]
+      end
     end
 
     def elb_cname_from_beanstalk_environment(env_name)

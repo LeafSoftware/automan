@@ -20,9 +20,17 @@ module Automat
 
     include Automat::Mixins::AwsCaller
 
-    def initialize
+    def initialize(options=nil)
       @logger = Logger.new(STDOUT)
       @log_aws_calls = false
+
+      if !options.nil?
+        @name = options[:name]
+        @version = options[:version_label]
+        @package_bucket = options[:bucket]
+        @environment = options[:environment]
+        @configuration_template = options[:template]
+      end
     end
 
     def print_options
@@ -271,13 +279,13 @@ module Automat
 
       print_options
 
-      unless application_exists?
-        create_application
-      end
+      # unless application_exists?
+      #   create_application
+      # end
 
-      unless config_template_exists?
-        create_configuration_template
-      end
+      # unless config_template_exists?
+      #   create_configuration_template
+      # end
 
       unless package_exists?
         logger.error "package s3://#{package_bucket}/#{package_s3_key} does not exist."

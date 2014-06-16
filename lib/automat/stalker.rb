@@ -15,13 +15,41 @@ module Automat
       required: true,
       aliases: "-z",
       desc: "Hosted zone for which apex will be routed to ELB"
+
     def alias
-      br = Automat::BeanstalkRouter.new
-      br.environment_name = options[:environment_name]
-      br.hosted_zone_name = options[:hosted_zone_name]
-      br.run
+      Automat::BeanstalkRouter.new(options).run
     end
 
+    desc "deploy", "deploy a beanstalk service"
+
+    option :name,
+      required: true,
+      aliases: "-n",
+      desc: "name of the service"
+
+    option :environment,
+      required: true,
+      aliases: "-e",
+      desc: "environment tag (e.g. dev, stage, prd)"
+
+    option :version_label,
+      required: true,
+      aliases: "-l",
+      desc: "beanstalk application version label"
+
+    option :bucket,
+      required: true,
+      aliases: "-b",
+      desc: "s3 bucket containing version package"
+
+    option :template,
+      required: true,
+      aliases: "-t",
+      desc: "beanstalk configuration template name"
+
+    def deploy
+      Automat::BeanstalkDeployer.new(options).run
+    end
 
   end
 end
