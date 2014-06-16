@@ -1,9 +1,10 @@
-require 'aws-sdk'
+require 'automat/mixins/aws_caller'
 require 'pathname'
 require 'logger'
 
 #
 # TODO: check status of environments and only update if status is 'Ready'
+# * change exits to exceptions
 #
 
 module Automat
@@ -13,22 +14,15 @@ module Automat
                   :package_bucket,
                   :environment,
                   :configuration_template,
+                  :configuration_options,
+                  :solution_stack_name,
                   :logger
 
-    attr_writer   :eb, :s3
-
-    attr_reader   :log_aws_calls
+    include Automat::Mixins::AwsCaller
 
     def initialize
       @logger = Logger.new(STDOUT)
       @log_aws_calls = false
-    end
-
-    def log_aws_calls=(value)
-      if value == true
-        AWS.config(logger: @logger)
-      end
-      @log_aws_calls = value
     end
 
     def print_options
@@ -38,21 +32,8 @@ module Automat
       message += "package_bucket:         #{package_bucket}\n"
       message += "environment:            #{environment}\n"
       message += "configuration_template: #{configuration_template}\n"
+      message += "solution_stack_name:    #{solution_stack_name}\n"
       logger.info message
-    end
-
-    def eb
-      if @eb.nil?
-        @eb = AWS::ElasticBeanstalk.new.client
-      end
-      @eb
-    end
-
-    def s3
-      if @s3.nil?
-        @s3 = AWS::S3.new
-      end
-      @s3
     end
 
     def package_name
@@ -90,16 +71,105 @@ module Automat
       env_name
     end
 
+    def application_exists?
+      opts = {
+        application_names: [ name ]
+      }
+
+      response = eb.describe_applications opts
+
+      unless response.successful?
+        logger.error "describe_applications failed: #{response.error}"
+        exit 1
+      end
+
+      response.data[:applications].each do |app|
+        if app[:application_name] == name
+          return true
+        end
+      end
+
+      return false
+    end
+
+    def create_application
+      logger.info "creating application #{name}"
+
+      opts = {
+        application_name: name
+      }
+
+      response = eb.create_application opts
+
+      unless response.successful?
+        logger.error "create_application failed: #{response.error}"
+        exit 1
+      end
+    end
+
+    def config_template_exists?
+      opts = {
+        application_name: name,
+        template_name:    configuration_template
+      }
+
+      response = eb.describe_configuration_settings opts
+
+      unless response.successful?
+        logger.error "describe_configuration_settings failed: #{response.error}"
+        exit 1
+      end
+
+      response.data[:configuration_settings].each do |settings|
+        if settings[:application_name] == name && settings[:template_name] == configuration_template
+          return true
+        end
+      end
+
+      return false
+    end
+
+    def delete_config_template
+      opts = {
+        application_name: name,
+        template_name:    configuration_template
+      }
+
+      reponse = eb.delete_configuration_template opts
+
+      unless response.successful?
+        logger.error "delete_configuration_template failed: #{response.error}"
+        exit 1
+      end
+    end
+
+    # where are we getting configuration data?
+    def create_config_template
+      opts = {
+        application_name:    name,
+        template_name:       configuration_template,
+        solution_stack_name: solution_stack_name,
+        option_settings:     configuration_options
+      }
+
+      response = eb.create_configuration_template opts
+
+      unless response.successful?
+        logger.error "create_configuration_template failed: #{response.error}"
+        exit 1
+      end
+    end
+
     def version_exists?
       opts = {
         application_name: name,
-        version_labels: [version]
+        version_labels:   [ version ]
       }
 
       response = eb.describe_application_versions opts
 
       unless response.successful?
-        logger.error "create_application_version failed: #{response.error}"
+        logger.error "describe_application_versions failed: #{response.error}"
         exit 1
       end
 
@@ -116,10 +186,10 @@ module Automat
       logger.info "creating version #{version}"
       opts = {
         application_name: name,
-        version_label: version,
+        version_label:    version,
         source_bundle: {
-          s3_bucket: package_bucket,
-          s3_key: package_s3_key
+          s3_bucket:      package_bucket,
+          s3_key:         package_s3_key
         }
       }
 
@@ -164,7 +234,7 @@ module Automat
 
       opts = {
         environment_name: eb_environment_name,
-        version_label: version
+        version_label:    version
       }
 
       response = eb.update_environment opts
@@ -200,6 +270,14 @@ module Automat
       logger.info "Deploying service."
 
       print_options
+
+      unless application_exists?
+        create_application
+      end
+
+      unless config_template_exists?
+        create_configuration_template
+      end
 
       unless package_exists?
         logger.error "package s3://#{package_bucket}/#{package_s3_key} does not exist."

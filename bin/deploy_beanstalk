@@ -7,6 +7,7 @@ require 'automat/beanstalk_deployer'
 # TODO:
 # * add cleanup of old versions to stay within some threshold
 # * add polling for environment lauch/update success
+# * add option for reading in configuration options files
 #
 
 def parse_opts(args)

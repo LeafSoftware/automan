@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+require 'ostruct'
+require 'optparse'
+require 'automat'
+
+def parse_opts(args)
+  options = OpenStruct.new
+
+  opts = OptionParser.new do |opts|
+    opts.banner = "Usage: #{File.basename($0)} [options]"
+
+    opts.on("-n", "--name STACKNAME", "Name of the stack") do |n|
+      options.name = n
+    end
+
+    opts.on("-t", "--template-file TEMPLATEFILE", "Path to json template") do |t|
+      options.template_file = t
+    end
+
+    opts.on_tail("-h", "--help", "this message") do
+      puts opts
+      exit
+    end
+
+  end
+
+  opts.parse!(args)
+
+  options
+end
+
+options = parse_opts(ARGV)
+
+s = Automat::Stacker.new
+s.template_file = options.template_file
+s.run

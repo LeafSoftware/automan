@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+require 'ostruct'
+require 'optparse'
+require 'automat/beanstalk_router'
+
+def parse_opts(args)
+  options = OpenStruct.new
+
+  opts = OptionParser.new do |opts|
+    opts.banner = "Usage: #{File.basename($0)} [options]"
+
+    opts.on("-e", "--environment-name ENVIRONMENTNAME", "Beanstalk environment containing target ELB") do |e|
+      options.environment_name = e
+    end
+
+    opts.on("-z", "--hosted-zone-name HOSTEDZONENAME", "Hosted zone for which apex will be routed to ELB") do |t|
+      options.hosted_zone_name = t
+    end
+
+    opts.on_tail("-h", "--help", "this message") do
+      puts opts
+      exit
+    end
+
+  end
+
+  opts.parse!(args)
+
+  %w[environment_name hosted_zone_name].each do |o|
+    if options.send(o).nil?
+      puts "ERROR: missing #{o}"
+      puts opts
+      exit 1
+    end
+  end
+
+  options
+end
+
+options = parse_opts(ARGV)
+
+r = Automat::BeanstalkRouter.new
+r.environment_name = options.environment_name
+r.hosted_zone_name = options.hosted_zone_name
+
+r.run
