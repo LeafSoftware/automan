@@ -28,7 +28,6 @@ module Automat
 
     # be sure alias_name ends in period
     def update_dns_alias(zone_name, alias_name, elb_data)
-      r53 = AWS::Route53.new
       zone = r53.hosted_zones.select {|z| z.name == zone_name}.first
       rrset = zone.rrsets[alias_name, 'A']
 
