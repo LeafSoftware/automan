@@ -25,6 +25,11 @@ module Automat::Cli
       default: false,
       desc: "set to true to enable IAM capabilities"
 
+    option :enable_update,
+      type: :boolean,
+      default: false,
+      desc: "set to true to update existing stack"
+
     option :parameters,
       type: :hash,
       default: {},
