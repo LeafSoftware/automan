@@ -1,6 +1,6 @@
 require "automat"
 
-describe Automat::BeanstalkDeployer do
+describe Automat::Beanstalk::Deployer do
 
   it { should respond_to :run }
   it { should respond_to :name }
@@ -17,7 +17,7 @@ describe Automat::BeanstalkDeployer do
   # The name can contain only letters, numbers, and hyphens.
   # It cannot start or end with a hyphen.
   describe '#eb_environment_name' do
-    subject(:bd) { Automat::BeanstalkDeployer.new }
+    subject(:bd) { Automat::Beanstalk::Deployer.new }
 
     it "is at least 4 characters" do
       bd.name = "a"
@@ -53,7 +53,7 @@ describe Automat::BeanstalkDeployer do
   describe '#version_exists?' do
     subject(:bd) do
       AWS.stub!
-      bd = Automat::BeanstalkDeployer.new
+      bd = Automat::Beanstalk::Deployer.new
       bd.eb = AWS::ElasticBeanstalk::Client.new
       bd.name = 'foo'
       bd.version = 'v4'

@@ -1,7 +1,7 @@
 require 'thor'
+require 'automat'
 
-module Automat
-
+module Automat::Cli
   class Stalker < Thor
 
     desc "alias", "point dns to elb"

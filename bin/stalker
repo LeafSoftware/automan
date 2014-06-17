@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
-require 'automat'
+require 'automat/cli/stalker'
 
-Automat::Stalker.start ARGV
+Automat::Cli::Stalker.start ARGV

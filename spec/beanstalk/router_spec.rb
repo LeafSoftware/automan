@@ -1,6 +1,6 @@
 require 'automat'
 
-describe Automat::BeanstalkRouter do
+describe Automat::Beanstalk::Router do
   it { should respond_to :run }
   it { should respond_to :eb }
   it { should respond_to :r53 }

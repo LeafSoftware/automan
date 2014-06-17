@@ -7,8 +7,8 @@ require 'logger'
 # * change exits to exceptions
 #
 
-module Automat
-  class BeanstalkDeployer
+module Automat::Beanstalk
+  class Deployer
     attr_accessor :name,
                   :version,
                   :package_bucket,
@@ -33,7 +33,7 @@ module Automat
       end
     end
 
-    def print_options
+    def log_options
       message = "called with:\n"
       message += "name:                   #{name}\n"
       message += "version:                #{version}\n"
@@ -277,7 +277,7 @@ module Automat
     def run
       logger.info "Deploying service."
 
-      print_options
+      log_options
 
       # unless application_exists?
       #   create_application

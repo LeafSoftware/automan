@@ -1,8 +1,8 @@
 require 'automat/mixins/aws_caller'
 require 'logger'
 
-module Automat
-  class BeanstalkRouter
+module Automat::Beanstalk
+  class Router
     attr_accessor :environment_name, :hosted_zone_name, :logger
 
     include Automat::Mixins::AwsCaller

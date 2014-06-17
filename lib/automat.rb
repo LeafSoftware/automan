@@ -1,5 +1,4 @@
 require 'automat/version'
-require 'automat/beanstalk_deployer'
-require 'automat/beanstalk_router'
-require 'automat/stalker'
-require 'automat/stacker'
+require 'automat/beanstalk/deployer'
+require 'automat/beanstalk/router'
+require 'automat/cloudformation/launcher'
