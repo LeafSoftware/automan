@@ -23,7 +23,6 @@ module Automat::Cloudformation
         @template         = options[:template]
         @name             = options[:name]
         @disable_rollback = options[:disable_rollback]
-        @enable_iam       = options[:enable_iam]
         @enable_update    = options[:enable_update]
         @parameters       = options[:parameters]
       end
@@ -34,7 +33,6 @@ module Automat::Cloudformation
       message += "name:             #{name}\n"
       message += "template:         #{template}\n"
       message += "disable_rollback: #{disable_rollback}\n"
-      message += "enable_iam:       #{enable_iam}\n"
       message += "enable_update:    #{enable_update}\n"
       message += "parameters:       #{parameters.inspect}\n"
       logger.info message
@@ -75,6 +73,13 @@ module Automat::Cloudformation
           raise MissingParametersError, "required parameter #{rp[:parameter_key]} was not specified"
         end
       end
+
+      # add iam capabilities if needed
+      if template_params_hash.has_key?(:capabilities) &&
+        template_params_hash[:capabilities].include?('CAPABILITY_IAM')
+        enable_iam = true
+      end
+
     end
 
     def stack_exists?
@@ -85,24 +90,35 @@ module Automat::Cloudformation
       opts = {
         parameters: parameters
       }
-      opts[:capabilities] = 'CAPABILITY_IAM' if enable_iam
+      opts[:capabilities] = ['CAPABILITY_IAM'] if enable_iam
       opts[:disable_rollback] = disable_rollback
 
       logger.info "launching stack #{name}"
-      cfn.stacks.create name, template_handle, opts
+      cfn.stacks.create name, template_handle(template), opts
     end
 
     def update
       opts = {
-        template: template_handle,
+        template: template_handle(template),
         parameters: parameters
       }
 
       logger.info "updating stack #{name}"
-      cfn.stacks[name].update( opts )
+
+      # if cfn determines that no updates are to be performed,
+      # it raises a ValidationError
+      begin
+        cfn.stacks[name].update( opts )
+      rescue AWS::CloudFormation::Errors::ValidationError => e
+        if e.message != "No updates are to be performed."
+          raise e
+        else
+          logger.info e.message
+        end
+      end
     end
 
-    def run
+    def launch_or_update
       log_options
 
       if stack_exists?
@@ -118,6 +134,11 @@ module Automat::Cloudformation
         launch
       end
 
+    end
+
+    def terminate
+      logger.info "terminating stack #{name}"
+      cfn.stacks[name].delete
     end
 
   end

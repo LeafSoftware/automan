@@ -13,17 +13,12 @@ module Automat::Cli
     option :template,
       required: true,
       aliases: "-t",
-      desc: "path to local json template file"
+      desc: "path to template file (s3://bucket/template or local file)"
 
     option :disable_rollback,
       type: :boolean,
       default: false,
       desc: "set to true to disable rollback of failed stacks"
-
-    option :enable_iam,
-      type: :boolean,
-      default: false,
-      desc: "set to true to enable IAM capabilities"
 
     option :enable_update,
       type: :boolean,
@@ -37,7 +32,30 @@ module Automat::Cli
       desc: "stack parameters (e.g. -p Environment=dev InstanceType=m1.small)"
 
     def launch
-      Automat::Cloudformation::Launcher.new(options).run
+      Automat::Cloudformation::Launcher.new(options).launch_or_update
+    end
+
+    desc "terminate", "terminate stack"
+
+    option :name,
+      required: true,
+      aliases: "-n",
+      desc: "name of the stack"
+
+    def terminate
+      Automat::Cloudformation::Launcher.new(options).terminate
+    end
+
+    desc "params", "print output from validate_template"
+
+    option :template,
+      required: true,
+      aliases: "-t",
+      desc: "path to template file (s3://bucket/template or local file)"
+
+    def params
+      h = Automat::Cloudformation::Launcher.new(options).parse_template_parameters
+      puts h.inspect
     end
   end
 end

@@ -9,9 +9,10 @@ describe Automat::Cloudformation::Launcher do
   it { should respond_to :enable_iam }
   it { should respond_to :enable_update }
   it { should respond_to :parse_template_parameters }
-  it { should respond_to :run }
+  it { should respond_to :launch_or_update }
   it { should respond_to :launch }
   it { should respond_to :update }
+  it { should respond_to :terminate }
 
   describe '#parse_template_parameters' do
     subject(:s) do
