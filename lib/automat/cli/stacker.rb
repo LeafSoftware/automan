@@ -46,6 +46,17 @@ module Automat::Cli
       Automat::Cloudformation::Launcher.new(options).terminate
     end
 
+    desc "replace-instances", "terminate and replace running asg instances"
+
+    option :name,
+      required: true,
+      aliases: "-n",
+      desc: "name of the stack"
+
+    def replace_instances
+      Automat::Cloudformation::Launcher.new(options).replace_instances
+    end
+
     desc "params", "print output from validate_template"
 
     option :template,

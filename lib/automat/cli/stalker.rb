@@ -42,14 +42,29 @@ module Automat::Cli
       aliases: "-b",
       desc: "s3 bucket containing version package"
 
-    option :template,
+    option :configuration_template,
       required: true,
       aliases: "-t",
       desc: "beanstalk configuration template name"
 
     def deploy
-      Automat::BeanstalkDeployer.new(options).run
+      Automat::BeanstalkDeployer.new(options).deploy
     end
 
+    desc "terminate", "terminate a beanstalk service"
+
+    option :name,
+      required: true,
+      aliases: "-n",
+      desc: "name of the service"
+
+    option :environment,
+      required: true,
+      aliases: "-e",
+      desc: "environment tag (e.g. dev, stage, prd)"
+
+    def terminate
+      Automat::BeanstalkDeployer.new(options).terminate
+    end
   end
 end

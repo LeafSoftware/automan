@@ -77,7 +77,7 @@ module Automat::Cloudformation
       # add iam capabilities if needed
       if template_params_hash.has_key?(:capabilities) &&
         template_params_hash[:capabilities].include?('CAPABILITY_IAM')
-        enable_iam = true
+        self.enable_iam = true
       end
 
     end
@@ -102,6 +102,7 @@ module Automat::Cloudformation
         template: template_handle(template),
         parameters: parameters
       }
+      opts[:capabilities] = ['CAPABILITY_IAM'] if enable_iam
 
       logger.info "updating stack #{name}"
 
@@ -121,6 +122,8 @@ module Automat::Cloudformation
     def launch_or_update
       log_options
 
+      validate_parameters
+
       if stack_exists?
 
         logger.info "stack #{name} exists"
@@ -137,8 +140,31 @@ module Automat::Cloudformation
     end
 
     def terminate
+      log_options
       logger.info "terminating stack #{name}"
       cfn.stacks[name].delete
+    end
+
+    def asg_from_stack
+      resources = cfn.stacks[name].resources
+      asgs = resources.select {|i| i.resource_type == "AWS::AutoScaling::AutoScalingGroup"}
+      if asgs.nil? || asgs.empty?
+        return nil
+      end
+      asg_id = asgs.first.physical_resource_id
+      as.groups[asg_id]
+    end
+
+    # terminate all running instances in the ASG so that new
+    # machines with the latest build will be started
+    def replace_instances
+      log_options
+      logger.info "replacing all auto-scaling instances in #{name}"
+      asg = asg_from_stack
+      asg.ec2_instances.each do |i|
+        logger.info "terminating instance #{i.id}"
+        i.terminate
+      end
     end
 
   end

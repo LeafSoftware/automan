@@ -8,6 +8,8 @@ module Automat
       def log_aws_calls=(value)
         if value == true
           AWS.config(logger: @logger)
+        else
+          AWS.config(logger: nil)
         end
         @log_aws_calls = value
       end
@@ -50,6 +52,14 @@ module Automat
           @cfn = AWS::CloudFormation.new
         end
         @cfn
+      end
+
+      attr_writer :as
+      def as
+        if @as.nil?
+          @as = AWS::AutoScaling.new
+        end
+        @as
       end
 
     end

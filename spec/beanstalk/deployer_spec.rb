@@ -2,16 +2,17 @@ require "automat"
 
 describe Automat::Beanstalk::Deployer do
 
-  it { should respond_to :run }
   it { should respond_to :name }
-  it { should respond_to :version }
-  it { should respond_to :package_bucket }
+  it { should respond_to :version_label }
+  it { should respond_to :bucket }
   it { should respond_to :environment }
   it { should respond_to :configuration_template }
   it { should respond_to :logger }
   it { should respond_to :eb }
   it { should respond_to :s3 }
   it { should respond_to :log_aws_calls }
+  it { should respond_to :deploy }
+  it { should respond_to :terminate }
 
   # Constraint: Must be from 4 to 23 characters in length.
   # The name can contain only letters, numbers, and hyphens.
@@ -56,15 +57,16 @@ describe Automat::Beanstalk::Deployer do
       bd = Automat::Beanstalk::Deployer.new
       bd.eb = AWS::ElasticBeanstalk::Client.new
       bd.name = 'foo'
-      bd.version = 'v4'
+      bd.version_label = 'v4'
       bd.log_aws_calls = false
+      bd.logger = Logger.new('/dev/null')
       bd
     end
 
     it "is true when version exists in response" do
       resp = bd.eb.stub_for :describe_application_versions
       resp.data[:application_versions] = [
-        {application_name: bd.name, version_label: bd.version}
+        {application_name: bd.name, version_label: bd.version_label}
       ]
       bd.version_exists?.should be_true
     end
