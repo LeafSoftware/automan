@@ -29,7 +29,7 @@ module Automat::Cli
       type: :hash,
       default: {},
       aliases: "-p",
-      desc: "stack parameters (e.g. -p Environment=dev InstanceType=m1.small)"
+      desc: "stack parameters (e.g. -p Environment:dev InstanceType:m1.small)"
 
     def launch
       Automat::Cloudformation::Launcher.new(options).launch_or_update
