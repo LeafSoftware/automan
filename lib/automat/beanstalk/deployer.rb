@@ -75,42 +75,6 @@ module Automat::Beanstalk
       env_name
     end
 
-    def application_exists?
-      opts = {
-        application_names: [ name ]
-      }
-
-      response = eb.describe_applications opts
-
-      unless response.successful?
-        logger.error "describe_applications failed: #{response.error}"
-        exit 1
-      end
-
-      response.data[:applications].each do |app|
-        if app[:application_name] == name
-          return true
-        end
-      end
-
-      return false
-    end
-
-    def create_application
-      logger.info "creating application #{name}"
-
-      opts = {
-        application_name: name
-      }
-
-      response = eb.create_application opts
-
-      unless response.successful?
-        logger.error "create_application failed: #{response.error}"
-        exit 1
-      end
-    end
-
     def config_template_exists?
       opts = {
         application_name: name,
@@ -330,14 +294,6 @@ module Automat::Beanstalk
       logger.info "Deploying service."
 
       log_options
-
-      # unless application_exists?
-      #   create_application
-      # end
-
-      # unless config_template_exists?
-      #   create_configuration_template
-      # end
 
       unless package_exists?
         logger.error "package #{package} does not exist."

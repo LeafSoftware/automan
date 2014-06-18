@@ -37,10 +37,10 @@ module Automat::Cli
       aliases: "-l",
       desc: "beanstalk application version label"
 
-    option :bucket,
+    option :package,
       required: true,
-      aliases: "-b",
-      desc: "s3 bucket containing version package"
+      aliases: "-p",
+      desc: "s3 path to version package (s3://bucket/package.zip)"
 
     option :configuration_template,
       required: true,
@@ -65,6 +65,17 @@ module Automat::Cli
 
     def terminate
       Automat::Beanstalk::Deployer.new(options).terminate
+    end
+
+    desc "create-app", "create beanstalk application"
+
+    option :name,
+      required: true,
+      aliases: "-n",
+      desc: "name of the application"
+
+    def create_app
+      Automat::Beanstalk::Application.new(options).create
     end
   end
 end
