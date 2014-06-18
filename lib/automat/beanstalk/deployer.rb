@@ -1,4 +1,5 @@
 require 'automat/mixins/aws_caller'
+require 'automat/mixins/utils'
 require 'pathname'
 require 'logger'
 
@@ -11,7 +12,7 @@ module Automat::Beanstalk
   class Deployer
     attr_accessor :name,
                   :version_label,
-                  :bucket,
+                  :package,
                   :environment,
                   :configuration_template,
                   :configuration_options,
@@ -20,6 +21,7 @@ module Automat::Beanstalk
                   :logger
 
     include Automat::Mixins::AwsCaller
+    include Automat::Mixins::Utils
 
     def initialize(options=nil)
       @logger = Logger.new(STDOUT)
@@ -39,7 +41,7 @@ module Automat::Beanstalk
       message = "called with:\n"
       message += "name:                   #{name}\n"
       message += "version_label:          #{version_label}\n"
-      message += "bucket:                 #{bucket}\n"
+      message += "package:                #{package}\n"
       message += "environment:            #{environment}\n"
       message += "configuration_template: #{configuration_template}\n"
       message += "solution_stack_name:    #{solution_stack_name}\n"
@@ -47,18 +49,9 @@ module Automat::Beanstalk
       logger.info message
     end
 
-    def package_name
-      "#{name}.zip"
-    end
-
-    def package_s3_key
-      [name, version_label, package_name].join('/')
-    end
-
     def package_exists?
-      mybucket = s3.buckets[bucket]
-      obj = mybucket.objects[package_s3_key]
-      obj.exists?
+      bucket, key = parse_s3_path package
+      s3.buckets[bucket].objects[key].exists?
     end
 
     def eb_environment_name
@@ -184,12 +177,14 @@ module Automat::Beanstalk
 
     def create_version
       logger.info "creating version #{version_label}"
+
+      bucket, key = parse_s3_path(package)
       opts = {
         application_name: name,
         version_label:    version_label,
         source_bundle: {
           s3_bucket:      bucket,
-          s3_key:         package_s3_key
+          s3_key:         key
         }
       }
 
@@ -345,7 +340,7 @@ module Automat::Beanstalk
       # end
 
       unless package_exists?
-        logger.error "package s3://#{bucket}/#{package_s3_key} does not exist."
+        logger.error "package #{package} does not exist."
         exit 1
       end
 

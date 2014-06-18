@@ -4,7 +4,7 @@ describe Automat::Beanstalk::Deployer do
 
   it { should respond_to :name }
   it { should respond_to :version_label }
-  it { should respond_to :bucket }
+  it { should respond_to :package }
   it { should respond_to :environment }
   it { should respond_to :configuration_template }
   it { should respond_to :logger }
