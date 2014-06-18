@@ -1,48 +1,23 @@
-require 'automat/mixins/aws_caller'
-require 'logger'
+require 'automat/base'
+require 'automat/mixins/utils'
+require 'automat/cloudformation/errors'
 
 # TODO: add timeout
 
 module Automat::Cloudformation
-  class Launcher
-    attr_accessor :name,
-                  :template,
-                  :disable_rollback,
-                  :enable_iam,
-                  :enable_update,
-                  :parameters,
-                  :logger
+  class Launcher < Automat::Base
+    add_option :name,
+               :template,
+               :disable_rollback,
+               :enable_iam,
+               :enable_update,
+               :parameters
 
-    include Automat::Mixins::AwsCaller
-
-    def initialize(options=nil)
-      @logger = Logger.new(STDOUT)
-      @log_aws_calls = false
-
-      if !options.nil?
-        @template         = options[:template]
-        @name             = options[:name]
-        @disable_rollback = options[:disable_rollback]
-        @enable_update    = options[:enable_update]
-        @parameters       = options[:parameters]
-      end
-    end
-
-    def log_options
-      message =  "called with:\n"
-      message += "name:             #{name}\n"
-      message += "template:         #{template}\n"
-      message += "disable_rollback: #{disable_rollback}\n"
-      message += "enable_update:    #{enable_update}\n"
-      message += "parameters:       #{parameters.inspect}\n"
-      logger.info message
-    end
+    include Automat::Mixins::Utils
 
     def template_handle(template_path)
-      if template_path.start_with? 's3://'
-        path = template_path[5..-1]
-        bucket = path.split('/').first
-        key = path.split('/')[1..-1].join('/')
+      if looks_like_s3_path? template_path
+        bucket, key = parse_s3_path template_path
         return s3.buckets[bucket].objects[key]
       else
         return File.read(template_path)
@@ -138,43 +113,6 @@ module Automat::Cloudformation
       end
 
     end
-
-    def terminate
-      log_options
-      logger.info "terminating stack #{name}"
-      cfn.stacks[name].delete
-    end
-
-    def asg_from_stack
-      resources = cfn.stacks[name].resources
-      asgs = resources.select {|i| i.resource_type == "AWS::AutoScaling::AutoScalingGroup"}
-      if asgs.nil? || asgs.empty?
-        return nil
-      end
-      asg_id = asgs.first.physical_resource_id
-      as.groups[asg_id]
-    end
-
-    # terminate all running instances in the ASG so that new
-    # machines with the latest build will be started
-    def replace_instances
-      log_options
-      logger.info "replacing all auto-scaling instances in #{name}"
-      asg = asg_from_stack
-      asg.ec2_instances.each do |i|
-        logger.info "terminating instance #{i.id}"
-        i.terminate
-      end
-    end
-
   end
 
-  class MissingParametersError < StandardError
-  end
-
-  class BadTemplateError < StandardError
-  end
-
-  class StackExistsError < StandardError
-  end
 end

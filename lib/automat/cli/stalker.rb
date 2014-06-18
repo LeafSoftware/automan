@@ -51,20 +51,15 @@ module Automat::Cli
       Automat::Beanstalk::Deployer.new(options).deploy
     end
 
-    desc "terminate", "terminate a beanstalk service"
+    desc "terminate", "terminate a beanstalk environment"
 
     option :name,
       required: true,
       aliases: "-n",
-      desc: "name of the service"
-
-    option :environment,
-      required: true,
-      aliases: "-e",
-      desc: "environment tag (e.g. dev, stage, prd)"
+      desc: "name of the beanstalk environment"
 
     def terminate
-      Automat::Beanstalk::Deployer.new(options).terminate
+      Automat::Beanstalk::Terminator.new(options).terminate
     end
 
     desc "create-app", "create beanstalk application"
@@ -76,6 +71,17 @@ module Automat::Cli
 
     def create_app
       Automat::Beanstalk::Application.new(options).create
+    end
+
+    desc "delete-app", "delete beanstalk application"
+
+    option :name,
+      required: true,
+      aliases: "-n",
+      desc: "name of the application"
+
+    def delete_app
+      Automat::Beanstalk::Application.new(options).delete
     end
   end
 end

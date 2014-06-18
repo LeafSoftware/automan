@@ -12,7 +12,6 @@ describe Automat::Beanstalk::Deployer do
   it { should respond_to :s3 }
   it { should respond_to :log_aws_calls }
   it { should respond_to :deploy }
-  it { should respond_to :terminate }
 
   # Constraint: Must be from 4 to 23 characters in length.
   # The name can contain only letters, numbers, and hyphens.

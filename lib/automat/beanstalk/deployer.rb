@@ -1,4 +1,4 @@
-require 'automat/mixins/aws_caller'
+require 'automat/base'
 require 'automat/mixins/utils'
 require 'pathname'
 require 'logger'
@@ -9,44 +9,21 @@ require 'logger'
 #
 
 module Automat::Beanstalk
-  class Deployer
-    attr_accessor :name,
-                  :version_label,
-                  :package,
-                  :environment,
-                  :configuration_template,
-                  :configuration_options,
-                  :solution_stack_name,
-                  :max_versions,
-                  :logger
+  class Deployer < Automat::Base
+    add_option :name,
+               :version_label,
+               :package,
+               :environment,
+               :configuration_template,
+               :configuration_options,
+               :solution_stack_name,
+               :max_versions
 
-    include Automat::Mixins::AwsCaller
     include Automat::Mixins::Utils
 
     def initialize(options=nil)
-      @logger = Logger.new(STDOUT)
-      @log_aws_calls = false
-
       @max_versions = 0
-
-      if !options.nil?
-        options.each_pair do |k,v|
-          accessor = (k.to_s + '=').to_sym
-          send(accessor, v)
-        end
-      end
-    end
-
-    def log_options
-      message = "called with:\n"
-      message += "name:                   #{name}\n"
-      message += "version_label:          #{version_label}\n"
-      message += "package:                #{package}\n"
-      message += "environment:            #{environment}\n"
-      message += "configuration_template: #{configuration_template}\n"
-      message += "solution_stack_name:    #{solution_stack_name}\n"
-      message += "max_versions:           #{max_versions}\n"
-      logger.info message
+      super
     end
 
     def package_exists?
@@ -189,7 +166,7 @@ module Automat::Beanstalk
     end
 
     def update_environment
-      logger.info "updating environment #{eb_environment_name} with version #{version_lable}"
+      logger.info "updating environment #{eb_environment_name} with version #{version_label}"
 
       opts = {
         environment_name: eb_environment_name,
@@ -223,21 +200,6 @@ module Automat::Beanstalk
         exit 1
       end
 
-    end
-
-    def terminate_environment
-      logger.info "terminating environment #{eb_environment_name}"
-
-      opts = {
-        environment_name: eb_environment_name
-      }
-
-      response = eb.terminate_environment opts
-
-      unless response.successful?
-        logger.error "terminate_environment failed: #{response.error}"
-        exit 1
-      end
     end
 
     def application_versions
@@ -319,12 +281,6 @@ module Automat::Beanstalk
       end
 
       logger.info "Finished deploying service."
-    end
-
-    def terminate
-      logger.info "terminating service"
-      log_options
-      terminate_environment
     end
 
   end

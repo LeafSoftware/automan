@@ -1,21 +1,10 @@
-require 'automat/mixins/aws_caller'
-require 'logger'
+require 'automat/base'
+require 'automat/beanstalk/errors'
 
 module Automat::Beanstalk
-  class Router
-    attr_accessor :environment_name, :hosted_zone_name, :logger
+  class Router < Automat::Base
 
-    include Automat::Mixins::AwsCaller
-
-    def initialize(options=nil)
-      @logger = Logger.new(STDOUT)
-      @log_aws_calls = false
-
-      if !options.nil?
-        @environment_name = options[:environment_name]
-        @hosted_zone_name = options[:hosted_zone_name]
-      end
-    end
+    add_option :environment_name, :hosted_zone_name
 
     def elb_cname_from_beanstalk_environment(env_name)
       opts = {
@@ -24,8 +13,7 @@ module Automat::Beanstalk
       response = eb.describe_environment_resources opts
 
       unless response.successful?
-        logger.error "describe_environment_resources failed: #{response.error}"
-        exit 1
+        raise RequestFailedError, "describe_environment_resources failed: #{response.error}"
       end
 
       response.data[:environment_resources][:load_balancers].first[:name]
@@ -61,6 +49,8 @@ module Automat::Beanstalk
     end
 
     def run
+      log_options
+
       elb_name = elb_cname_from_beanstalk_environment environment_name
       elb_data = elb.load_balancers[elb_name]
 

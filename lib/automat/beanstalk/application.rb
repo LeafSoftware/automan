@@ -1,5 +1,5 @@
 require 'automat/base'
-require 'automat/mixins/aws_caller'
+require 'automat/beanstalk/errors'
 
 module Automat::Beanstalk
   class Application < Automat::Base
@@ -56,19 +56,18 @@ module Automat::Beanstalk
     def create
       log_options
       if application_exists?
-        raise ApplicationExistsError, "Application #{name} already exists"
+        logger.warn "Application #{name} already exists. Doing nothing."
       end
       create_application
     end
 
     def delete
-      logger.error "delete not implemented"
+      log_options
+      if !application_exists?
+        logger.warn "Application #{name} does not exist. Doing nothing."
+      end
+      delete_application
     end
   end
 
-  class RequestFailedError < StandardError
-  end
-
-  class ApplicationExistsError < StandardError
-  end
 end
