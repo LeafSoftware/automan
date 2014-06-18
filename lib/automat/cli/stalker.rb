@@ -17,7 +17,7 @@ module Automat::Cli
       desc: "Hosted zone for which apex will be routed to ELB"
 
     def alias
-      Automat::BeanstalkRouter.new(options).run
+      Automat::Beanstalk::Router.new(options).run
     end
 
     desc "deploy", "deploy a beanstalk service"
@@ -48,7 +48,7 @@ module Automat::Cli
       desc: "beanstalk configuration template name"
 
     def deploy
-      Automat::BeanstalkDeployer.new(options).deploy
+      Automat::Beanstalk::Deployer.new(options).deploy
     end
 
     desc "terminate", "terminate a beanstalk service"
@@ -64,7 +64,7 @@ module Automat::Cli
       desc: "environment tag (e.g. dev, stage, prd)"
 
     def terminate
-      Automat::BeanstalkDeployer.new(options).terminate
+      Automat::Beanstalk::Deployer.new(options).terminate
     end
   end
 end

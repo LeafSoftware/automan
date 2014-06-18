@@ -28,8 +28,9 @@ module Automat::Beanstalk
       @max_versions = 0
 
       if !options.nil?
-        options.each do |k,v|
-          send(k, v)
+        options.each_pair do |k,v|
+          accessor = (k.to_s + '=').to_sym
+          send(accessor, v)
         end
       end
     end
