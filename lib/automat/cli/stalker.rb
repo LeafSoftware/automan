@@ -83,5 +83,48 @@ module Automat::Cli
     def delete_app
       Automat::Beanstalk::Application.new(options).delete
     end
+
+    desc "create-config", "create beanstalk configuration template"
+
+    option :name,
+      required: true,
+      aliases: "-n",
+      desc: "name of the configuration template"
+
+    option :application,
+      required: true,
+      aliases: "-a",
+      desc: "name of the application"
+
+    option :template,
+      required: true,
+      aliases: "-t",
+      desc: "file containing configuration options"
+
+    option :platform,
+      required: "true",
+      aliases: "-p",
+      default: "64bit Windows Server 2012 running IIS 8",
+      desc: "beanstalk solution stack name"
+
+    def create_config
+      Automat::Beanstalk::Configuration.new(options).create
+    end
+
+    desc "delete-config", "delete beanstalk configuration template"
+
+    option :name,
+      required: true,
+      aliases: "-n",
+      desc: "name of the configuration template"
+
+    option :application,
+      required: true,
+      aliases: "-a",
+      desc: "name of the application"
+
+    def delete_config
+      Automat::Beanstalk::Configuration.new(options).delete
+    end
   end
 end

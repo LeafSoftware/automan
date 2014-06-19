@@ -16,4 +16,16 @@ describe Automat::Mixins::Utils do
     }.to raise_error ArgumentError
   end
 
+  it "adds String#underscore" do
+    s = String.new
+    s.should respond_to :underscore
+  end
+
+  describe "String#underscore" do
+    it "underscore's like a boss" do
+      "Namespace".underscore.should eq "namespace"
+      "OptionName".underscore.should eq "option_name"
+      "Value".underscore.should eq "value"
+    end
+  end
 end

@@ -52,59 +52,6 @@ module Automat::Beanstalk
       env_name
     end
 
-    def config_template_exists?
-      opts = {
-        application_name: name,
-        template_name:    configuration_template
-      }
-
-      response = eb.describe_configuration_settings opts
-
-      unless response.successful?
-        logger.error "describe_configuration_settings failed: #{response.error}"
-        exit 1
-      end
-
-      response.data[:configuration_settings].each do |settings|
-        if settings[:application_name] == name && settings[:template_name] == configuration_template
-          return true
-        end
-      end
-
-      return false
-    end
-
-    def delete_config_template
-      opts = {
-        application_name: name,
-        template_name:    configuration_template
-      }
-
-      response = eb.delete_configuration_template opts
-
-      unless response.successful?
-        logger.error "delete_configuration_template failed: #{response.error}"
-        exit 1
-      end
-    end
-
-    # where are we getting configuration data?
-    def create_config_template
-      opts = {
-        application_name:    name,
-        template_name:       configuration_template,
-        solution_stack_name: solution_stack_name,
-        option_settings:     configuration_options
-      }
-
-      response = eb.create_configuration_template opts
-
-      unless response.successful?
-        logger.error "create_configuration_template failed: #{response.error}"
-        exit 1
-      end
-    end
-
     def version_exists?
 
       application_versions.each do |v|
