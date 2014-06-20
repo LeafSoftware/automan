@@ -4,7 +4,9 @@ require 'automat/beanstalk/errors'
 module Automat::Beanstalk
   class Router < Automat::Base
 
-    add_option :environment_name, :hosted_zone_name
+    add_option :environment_name,
+               :hosted_zone_name,
+               :target
 
     def elb_cname_from_beanstalk_environment(env_name)
       opts = {
@@ -55,16 +57,14 @@ module Automat::Beanstalk
       elb_data = elb.load_balancers[elb_name]
 
       targets = [
-        hosted_zone_name,
-        'www.'  + hosted_zone_name,
-        '\052.' + hosted_zone_name
+        target + '.' + hosted_zone_name,
       ]
 
-      targets.each do |target|
+      targets.each do |t|
 
         update_dns_alias(
           hosted_zone_name,
-          target,
+          t,
           elb_data
         )
       end

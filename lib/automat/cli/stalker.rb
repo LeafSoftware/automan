@@ -16,6 +16,11 @@ module Automat::Cli
       aliases: "-z",
       desc: "Hosted zone for which apex will be routed to ELB"
 
+    option :target,
+      required: true,
+      aliases: "-t",
+      desc: "Target hostname to alias (e.g. 'dev1' for dev1.dydev.me)"
+
     def alias
       Automat::Beanstalk::Router.new(options).run
     end
