@@ -109,14 +109,17 @@ module Automat::Beanstalk
       if config_template_exists?
         logger.warn "Configuration template #{name} for #{application} already exists. Doing nothing."
       end
+      logger.info "Creating configuration template #{name} for #{application}."
       create_config_template
     end
 
     def delete
       log_options
       if !config_template_exists?
-        logger.warn "Application #{name} for #{application} does not exist. Doing nothing."
+        logger.warn "Configuration #{name} for #{application} does not exist. Doing nothing."
+        return
       end
+      logger.info "Deleting configuration template #{name} for #{application}."
       delete_config_template
     end
 
