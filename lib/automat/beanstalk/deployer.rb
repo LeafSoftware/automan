@@ -209,7 +209,9 @@ module Automat::Beanstalk
         exit 1
       end
 
-      unless version_exists?
+      if version_exists?
+        logger.warn "version #{version_label} for #{name} already exists. Not creating."
+      else
         create_version
 
         if max_versions.to_i > 0
