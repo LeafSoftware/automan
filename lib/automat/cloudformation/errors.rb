@@ -8,6 +8,15 @@ module Automat::Cloudformation
   class StackExistsError < StandardError
   end
 
+  class StackDoesNotExistError < StandardError
+  end
+
+  class StackBrokenError < StandardError
+  end
+
+  class WaitTimedOutError < StandardError
+  end
+
   class MissingAutoScalingGroupError < StandardError
   end
 end

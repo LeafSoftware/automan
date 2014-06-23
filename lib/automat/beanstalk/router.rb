@@ -9,7 +9,7 @@ module Automat::Beanstalk
                :hosted_zone_name,
                :target
 
-    def initialize(options)
+    def initialize(options=nil)
       @wait = Wait.new({
         attempts: 10,
         delay:    30,   # 10 x 30s == 5m
@@ -74,6 +74,7 @@ module Automat::Beanstalk
 
       wait_until(ex) do
 
+        logger.info "waiting for elb cname..."
         elb_name = elb_cname_from_beanstalk_environment environment_name
         !elb_name.nil?
 
