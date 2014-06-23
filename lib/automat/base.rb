@@ -1,6 +1,8 @@
 require 'automat'
 require 'automat/mixins/aws_caller'
+require 'automat/wait_rescuer'
 require 'logger'
+require 'wait'
 
 module Automat
   class Base
@@ -8,13 +10,14 @@ module Automat
       attr_accessor :option_names
     end
 
-    attr_accessor :logger
+    attr_accessor :logger, :wait
 
     include Automat::Mixins::AwsCaller
 
     def initialize(options=nil)
       @logger = Logger.new(STDOUT)
       @log_aws_calls = false
+      @wait = Wait.new(rescuer: WaitRescuer.new)
 
       if !options.nil?
         options.each_pair do |k,v|
@@ -43,6 +46,20 @@ module Automat
         message += "#{opt_name} #{send(opt)}\n"
       end
       logger.info message
+    end
+
+    def wait_until(raise_on_fail=nil, &block)
+      begin
+        wait.until do
+          yield
+        end
+      rescue Wait::ResultInvalid => e
+        if raise_on_fail.nil?
+          raise e
+        else
+          raise raise_on_fail
+        end
+      end
     end
   end
 end

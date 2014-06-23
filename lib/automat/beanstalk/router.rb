@@ -1,5 +1,6 @@
 require 'automat/base'
 require 'automat/beanstalk/errors'
+require 'wait'
 
 module Automat::Beanstalk
   class Router < Automat::Base
@@ -7,6 +8,15 @@ module Automat::Beanstalk
     add_option :environment_name,
                :hosted_zone_name,
                :target
+
+    def initialize(options)
+      @wait = Wait.new({
+        attempts: 10,
+        delay:    30,   # 10 x 30s == 5m
+        debug:    true
+      })
+      super
+    end
 
     def elb_cname_from_beanstalk_environment(env_name)
       opts = {
@@ -18,7 +28,12 @@ module Automat::Beanstalk
         raise RequestFailedError, "describe_environment_resources failed: #{response.error}"
       end
 
-      response.data[:environment_resources][:load_balancers].first[:name]
+      balancers = response.data[:environment_resources][:load_balancers]
+      if balancers.empty?
+        return nil
+      end
+
+      balancers.first[:name]
     end
 
     # be sure alias_name ends in period
@@ -53,7 +68,17 @@ module Automat::Beanstalk
     def run
       log_options
 
-      elb_name = elb_cname_from_beanstalk_environment environment_name
+      elb_name = nil
+
+      ex = ELBNameNotFoundError.new("timed out waiting on CNAME")
+
+      wait_until(ex) do
+
+        elb_name = elb_cname_from_beanstalk_environment environment_name
+        !elb_name.nil?
+
+      end
+
       elb_data = elb.load_balancers[elb_name]
 
       targets = [

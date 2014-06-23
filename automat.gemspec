@@ -23,4 +23,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "aws-sdk"
   spec.add_dependency "thor"
   spec.add_dependency "json"
+  spec.add_dependency "wait"
 end
