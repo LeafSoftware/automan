@@ -50,33 +50,5 @@ describe Automat::Beanstalk::Deployer do
     end
   end
 
-  describe '#version_exists?' do
-    subject(:bd) do
-      AWS.stub!
-      bd = Automat::Beanstalk::Deployer.new
-      bd.eb = AWS::ElasticBeanstalk::Client.new
-      bd.name = 'foo'
-      bd.version_label = 'v4'
-      bd.log_aws_calls = false
-      bd.logger = Logger.new('/dev/null')
-      bd
-    end
-
-    it "is true when version exists in response" do
-      resp = bd.eb.stub_for :describe_application_versions
-      resp.data[:application_versions] = [
-        {application_name: bd.name, version_label: bd.version_label}
-      ]
-      bd.version_exists?.should be_true
-    end
-
-    it "is false when version is not in response" do
-      resp = bd.eb.stub_for :describe_application_versions
-      resp.data[:application_versions] = [
-        {application_name: '', version_label: ''}
-      ]
-      bd.version_exists?.should be_false
-    end
-  end
 end
 

@@ -52,6 +52,11 @@ module Automat::Cli
       aliases: "-t",
       desc: "beanstalk configuration template name"
 
+    option :number_to_keep,
+      aliases: "-n",
+      type: :numeric,
+      desc: "cull old versions and keep newest NUMBER_TO_KEEP"
+
     def deploy
       Automat::Beanstalk::Deployer.new(options).deploy
     end
@@ -130,6 +135,39 @@ module Automat::Cli
 
     def delete_config
       Automat::Beanstalk::Configuration.new(options).delete
+    end
+
+    desc "delete-version", "delete an application version"
+
+    option :application,
+      required: true,
+      aliases: "-a",
+      desc: "name of the application"
+
+    option :label,
+      required: true,
+      aliases: "-l",
+      desc: "version label to be deleted"
+
+    def delete_version
+      Automat::Beanstalk::Version.new(options).delete
+    end
+
+    desc "cull-versions", "delete oldest versions, keeping N newest"
+
+    option :application,
+      required: true,
+      aliases: "-a",
+      desc: "name of the application"
+
+    option :number_to_keep,
+      required: true,
+      aliases: "-n",
+      type: :numeric,
+      desc: "keep newest NUMBER_TO_KEEP versions"
+
+    def cull_versions
+      Automat::Beanstalk::Version.new(options).cull_versions(options[:number_to_keep])
     end
   end
 end

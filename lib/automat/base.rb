@@ -19,7 +19,7 @@ module Automat
       if !options.nil?
         options.each_pair do |k,v|
           accessor = (k.to_s + '=').to_sym
-          send(accessor, v)
+          send(accessor, v) if respond_to? accessor
         end
       end
     end

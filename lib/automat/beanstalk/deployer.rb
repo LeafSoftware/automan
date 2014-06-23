@@ -1,4 +1,5 @@
 require 'automat/base'
+require 'automat/beanstalk/version'
 require 'automat/mixins/utils'
 require 'pathname'
 require 'logger'
@@ -17,12 +18,12 @@ module Automat::Beanstalk
                :configuration_template,
                :configuration_options,
                :solution_stack_name,
-               :max_versions
+               :number_to_keep
 
     include Automat::Mixins::Utils
 
     def initialize(options=nil)
-      @max_versions = 0
+      @number_to_keep = 0
       super
     end
 
@@ -50,38 +51,6 @@ module Automat::Beanstalk
       end
 
       env_name
-    end
-
-    def version_exists?
-
-      application_versions.each do |v|
-        if v[:application_name] == name && v[:version_label] == version_label
-          return true
-        end
-      end
-
-      return false
-    end
-
-    def create_version
-      logger.info "creating version #{version_label}"
-
-      bucket, key = parse_s3_path(package)
-      opts = {
-        application_name: name,
-        version_label:    version_label,
-        source_bundle: {
-          s3_bucket:      bucket,
-          s3_key:         key
-        }
-      }
-
-      response = eb.create_application_version opts
-
-      unless response.successful?
-        logger.error "create_application_version failed: #{response.error}"
-        exit 1
-      end
     end
 
     # Possible status states:
@@ -149,56 +118,6 @@ module Automat::Beanstalk
 
     end
 
-    def application_versions
-      logger.info "listing application versions for #{name}"
-
-      opts = {
-        application_name: name
-      }
-
-      response = eb.describe_application_versions opts
-
-      unless response.successful?
-        logger.error "describe_application_versions failed: #{response.error}"
-        exit 1
-      end
-
-      response.data[:application_versions]
-    end
-
-    def delete_application_version(version)
-      logger.info "deleting version #{version} for application #{name}"
-
-      opts = {
-        application_name: name,
-        version_label: version,
-        delete_source_bundle: true
-      }
-
-      response = eb.delete_application_versions opts
-
-      unless response.successful?
-        logger.error "delete_application_version failed #{response.error}"
-        exit 1
-      end
-    end
-
-    def cull_versions
-      versions = application_versions
-      if versions.size <= max_versions.to_i
-        return
-      end
-
-      to_cull = versions.size - max_versions.to_i
-      logger.info "culling oldest #{to_cull} versions"
-
-      condemned = versions.sort_by {|v| v[:date_created] }[0..to_cull-1]
-
-      condemned.each do |i|
-        delete_application_version(i[:version_label])
-      end
-    end
-
     def deploy
       logger.info "Deploying service."
 
@@ -209,13 +128,17 @@ module Automat::Beanstalk
         exit 1
       end
 
-      if version_exists?
+      version = Automat::Beanstalk::Version.new
+      version.application = name
+      version.label       = version_label
+
+      if version.exists?
         logger.warn "version #{version_label} for #{name} already exists. Not creating."
       else
-        create_version
+        version.create(package)
 
-        if max_versions.to_i > 0
-          cull_versions
+        if number_to_keep > 0
+          version.cull_versions(number_to_keep)
         end
       end
 
