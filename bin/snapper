@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require 'automat/cli/snapper'
+
+Automat::Cli::Snapper.start ARGV

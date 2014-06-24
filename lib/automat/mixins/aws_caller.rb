@@ -4,6 +4,10 @@ module Automat
   module Mixins
     module AwsCaller
 
+      def account
+        ENV['AWS_ACCOUNT_ID']
+      end
+
       attr_reader :log_aws_calls
       def log_aws_calls=(value)
         if value == true
@@ -60,6 +64,14 @@ module Automat
           @as = AWS::AutoScaling.new
         end
         @as
+      end
+
+      attr_writer :rds
+      def rds
+        if @rds.nil?
+          @rds = AWS::RDS.new
+        end
+        @rds
       end
 
     end

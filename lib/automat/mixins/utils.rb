@@ -21,6 +21,10 @@ module Automat::Mixins
 
     end
 
+    def region_from_az(availability_zone)
+      availability_zone[0..-2]
+    end
+
     class ::String
       def underscore
         self.gsub(/::/, '/').
