@@ -8,6 +8,7 @@ describe Automat::Beanstalk::Router do
   it { should respond_to :elb }
   it { should respond_to :environment_name }
   it { should respond_to :hosted_zone_name }
+  it { should respond_to :hostname }
 
   describe '#run' do
     context 'waiting' do
@@ -18,7 +19,7 @@ describe Automat::Beanstalk::Router do
         r.elb = AWS::ELB.new
         r.environment_name = 'foo'
         r.hosted_zone_name = 'foo.com'
-        r.target           = 'www.foo.com'
+        r.hostname         = 'www.foo.com'
         r.log_aws_calls = false
         r.logger = Logger.new('/dev/null')
         r.wait = Wait.new(delay: 0.01, rescuer: WaitRescuer.new)

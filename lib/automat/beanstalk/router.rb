@@ -8,7 +8,7 @@ module Automat::Beanstalk
 
     add_option :environment_name,
                :hosted_zone_name,
-               :target
+               :hostname
 
     def initialize(options=nil)
       super
@@ -17,6 +17,11 @@ module Automat::Beanstalk
         delay:    30,   # 10 x 30s == 5m
         debug:    true,
         rescuer:  WaitRescuer.new,
+
+        # rescue from InvalidChangeBatch
+        # just because we've found the elb cname doesn't
+        # mean it is immediately available as a route53 alias
+        rescue:   AWS::Route53::Errors::InvalidChangeBatch,
         logger:   @logger
       })
     end
@@ -85,18 +90,11 @@ module Automat::Beanstalk
 
       elb_data = elb.load_balancers[elb_name]
 
-      targets = [
-        target + '.' + hosted_zone_name,
-      ]
-
-      targets.each do |t|
-
-        update_dns_alias(
-          hosted_zone_name,
-          t,
-          elb_data
-        )
-      end
+      update_dns_alias(
+        hosted_zone_name,
+        hostname,
+        elb_data
+      )
     end
   end
 end
