@@ -3,6 +3,10 @@ require 'automat'
 
 module Automat::Cli
   class Snapper < Thor
+    def self.exit_on_failure?
+        return true
+    end
+
     desc "create", "create a snapshot"
 
     option :name,

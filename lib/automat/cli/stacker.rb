@@ -3,6 +3,10 @@ require 'automat'
 
 module Automat::Cli
   class Stacker < Thor
+    def self.exit_on_failure?
+        return true
+    end
+
     desc "launch", "launches a cloudformation stack"
 
     option :name,

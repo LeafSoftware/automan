@@ -4,6 +4,10 @@ require 'automat'
 module Automat::Cli
   class Stalker < Thor
 
+    def self.exit_on_failure?
+        return true
+    end
+
     desc "alias", "point dns to elb"
 
     option :environment_name,
