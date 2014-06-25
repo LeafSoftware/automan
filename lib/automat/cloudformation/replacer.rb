@@ -1,5 +1,6 @@
 require 'automat/base'
 require 'automat/cloudformation/errors'
+require 'automat/wait_rescuer'
 require 'wait'
 
 module Automat::Cloudformation
@@ -7,13 +8,14 @@ module Automat::Cloudformation
     add_option :name
 
     def initialize(options=nil)
+      super
       @wait = Wait.new({
         delay: 60,
         attempts: 20, # 20 x 60s == 20m
         debug: true,
-        logger: @logger
+        rescuer:  WaitRescuer.new,
+        logger:   @logger
       })
-      super
     end
 
     # potential states

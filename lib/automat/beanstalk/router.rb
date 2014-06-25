@@ -1,5 +1,6 @@
 require 'automat/base'
 require 'automat/beanstalk/errors'
+require 'automat/wait_rescuer'
 require 'wait'
 
 module Automat::Beanstalk
@@ -10,12 +11,14 @@ module Automat::Beanstalk
                :target
 
     def initialize(options=nil)
+      super
       @wait = Wait.new({
         attempts: 10,
         delay:    30,   # 10 x 30s == 5m
-        debug:    true
+        debug:    true,
+        rescuer:  WaitRescuer.new,
+        logger:   @logger
       })
-      super
     end
 
     def elb_cname_from_beanstalk_environment(env_name)

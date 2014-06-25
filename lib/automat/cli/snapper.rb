@@ -47,5 +47,25 @@ module Automat::Cli
       Automat::RDS::Snapshot.new(options).delete
     end
 
+    desc "latest", "find the most recent snapshot"
+
+    option :database,
+      aliases: "-d",
+      desc: "name of the database to snapshot"
+
+    option :environment,
+      aliases: "-e",
+      desc: "environment of database to snapshot"
+
+    def latest
+      if options[:database].nil? && options[:environment].nil?
+        puts "Must specify either database or environment"
+        help "latest"
+        exit 1
+      end
+
+      Automat::RDS::Snapshot.new(options).latest
+    end
+
   end
 end

@@ -7,13 +7,18 @@ module Automat::RDS
 
     include Automat::Mixins::Utils
 
-    def create
+    def find_db
       db = nil
       if !database.nil?
-        db = db_instances[database]
+        db = rds.db_instances[database]
       elsif !environment.nil?
         db = find_db_by_environment(environment)
       end
+      db
+    end
+
+    def create
+      db = find_db
 
       logger.info "Creating snapshot #{name} for #{db.id}"
       db.create_snapshot(name)
@@ -105,10 +110,15 @@ module Automat::RDS
           logger.info "Deleting #{snapshot_name} because it is too old."
           snapshot.delete
         end
-
       end
-
     end
 
+    def latest
+      log_options
+      db = find_db
+      logger.info "Finding most recent snapshot for #{db.id}"
+      s = db.snapshots.sort_by {|i| i.created_at }.last
+      logger.info "Most recent snapshot is #{s.id}"
+    end
   end
 end

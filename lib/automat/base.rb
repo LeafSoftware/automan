@@ -17,7 +17,7 @@ module Automat
     def initialize(options=nil)
       @logger = Logger.new(STDOUT)
       @log_aws_calls = false
-      @wait = Wait.new(rescuer: WaitRescuer.new, logger: @logger)
+      #@wait = Wait.new(rescuer: WaitRescuer.new, logger: @logger)
 
       if !options.nil?
         options.each_pair do |k,v|
