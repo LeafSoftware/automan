@@ -10,6 +10,8 @@ module Automat::Beanstalk
                :hosted_zone_name,
                :hostname
 
+    attr_accessor :attempts_made
+
     def initialize(options=nil)
       super
       @wait = Wait.new({
@@ -75,25 +77,28 @@ module Automat::Beanstalk
     def run
       log_options
 
-      elb_name = nil
+      wait.until do |attempt|
 
-      ex = ELBNameNotFoundError.new("timed out waiting on CNAME")
-
-      wait_until(ex) do
+        self.attempts_made = attempt
 
         logger.info "waiting for elb cname..."
         elb_name = elb_cname_from_beanstalk_environment environment_name
-        !elb_name.nil?
+
+        if elb_name.nil?
+          false
+        else
+
+          elb_data = elb.load_balancers[elb_name]
+
+          update_dns_alias(
+            hosted_zone_name,
+            hostname,
+            elb_data
+          )
+          true
+        end
 
       end
-
-      elb_data = elb.load_balancers[elb_name]
-
-      update_dns_alias(
-        hosted_zone_name,
-        hostname,
-        elb_data
-      )
     end
   end
 end
