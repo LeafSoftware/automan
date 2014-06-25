@@ -35,7 +35,7 @@ module Automat::Beanstalk
     end
 
     def create(package)
-      logger.info "creating version #{version_label}"
+      logger.info "creating version #{label}"
 
       bucket, key = parse_s3_path(package)
       opts = {
@@ -56,11 +56,11 @@ module Automat::Beanstalk
     end
 
     def delete_by_label(version_label)
-      logger.info "deleting version #{version_label} for application #{application}"
+      logger.info "deleting version #{label} for application #{application}"
 
       opts = {
         application_name: application,
-        version_label: version_label,
+        version_label: label,
         delete_source_bundle: true
       }
 
