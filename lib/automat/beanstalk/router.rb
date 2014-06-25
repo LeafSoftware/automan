@@ -16,13 +16,12 @@ module Automat::Beanstalk
         attempts: 10,
         delay:    30,   # 10 x 30s == 5m
         debug:    true,
-        rescuer:  WaitRescuer.new,
+        logger:   @logger,
 
         # rescue from InvalidChangeBatch
         # just because we've found the elb cname doesn't
         # mean it is immediately available as a route53 alias
-        rescue:   AWS::Route53::Errors::InvalidChangeBatch,
-        logger:   @logger
+        rescuer:  WaitRescuer.new(AWS::Route53::Errors::InvalidChangeBatch)
       })
     end
 

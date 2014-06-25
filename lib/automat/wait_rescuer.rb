@@ -1,8 +1,8 @@
 require 'wait'
 
 class ::WaitRescuer < Wait::BaseRescuer
-  def initialize
-    super(nil)
+  def initialize(exceptions=nil)
+    super
   end
   # Logs an exception.
   def log(exception)
