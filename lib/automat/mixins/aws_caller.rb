@@ -74,6 +74,14 @@ module Automat
         @rds
       end
 
+      attr_writer :ec2
+      def ec2
+        if @ec2.nil?
+          @ec2 = AWS::EC2.new
+        end
+        @ec2
+      end
+
     end
   end
 end

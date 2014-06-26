@@ -15,6 +15,7 @@ module Automat
     include Automat::Mixins::AwsCaller
 
     def initialize(options=nil)
+      $stdout.sync = true
       @logger = Logger.new(STDOUT)
       @log_aws_calls = false
       #@wait = Wait.new(rescuer: WaitRescuer.new, logger: @logger)
