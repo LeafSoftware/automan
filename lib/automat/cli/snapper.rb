@@ -12,8 +12,7 @@ module Automat::Cli
 
     option :name,
       aliases: "-n",
-      desc: "what to name the snapshot",
-      default: Time.new.iso8601.gsub(/:/,'-')
+      desc: "what to name the snapshot"
 
     option :database,
       aliases: "-d",
@@ -34,6 +33,16 @@ module Automat::Cli
         puts "Must specify either database or environment"
         help "create"
         exit 1
+      end
+
+      stime=Time.new.iso8601.gsub(/:/,'-')
+
+      if options[:name].nil?
+        if options[:environment].nil?
+          options[:name]="#{options[:database]}-#{stime}"
+        else
+          options[:name]="#{options[:environment]}-#{stime}"
+        end
       end
 
       s = Automat::RDS::Snapshot.new(options)
