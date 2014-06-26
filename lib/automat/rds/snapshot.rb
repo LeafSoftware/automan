@@ -21,10 +21,7 @@ module Automat::RDS
     def create
       db = find_db
 
-      myname=name.dup
-      if myname.nil?
-        myname=default_snapshot_name
-      end
+      myname = name.nil? ? default_snapshot_name : name.dup
 
       logger.info "Creating snapshot #{myname} for #{db.id}"
       db.create_snapshot(myname)
