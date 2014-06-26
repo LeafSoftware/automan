@@ -20,9 +20,22 @@ module Automat::RDS
     def create
       db = find_db
 
-      logger.info "Creating snapshot #{name} for #{db.id}"
-      db.create_snapshot(name)
-      set_prunable(name)
+      myname=name.dup
+      if myname.nil?
+        myname=default_snapshot_name
+      end
+
+      logger.info "Creating snapshot #{myname} for #{db.id}"
+      db.create_snapshot(myname)
+      set_prunable(myname)
+    end
+
+    def default_snapshot_name(db)
+      arn = db_arn(db.id)
+      env = tags(arn)['Name']
+      stime=Time.new.iso8601.gsub(/:/,'-')
+
+      return env+"-"+stime
     end
 
     def find_db_by_environment(environment)

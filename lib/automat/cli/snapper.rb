@@ -10,17 +10,17 @@ module Automat::Cli
 
     desc "create", "create a snapshot"
 
-    option :name,
-      aliases: "-n",
-      desc: "what to name the snapshot"
+    option :environment,
+      aliases: "-e",
+      desc: "environment of database to snapshot"
 
     option :database,
       aliases: "-d",
       desc: "name of the database to snapshot"
 
-    option :environment,
-      aliases: "-e",
-      desc: "environment of database to snapshot"
+    option :name,
+      aliases: "-n",
+      desc: "what to name the snapshot"
 
     option :enable_pruning,
       aliases: "-p",
@@ -33,16 +33,6 @@ module Automat::Cli
         puts "Must specify either database or environment"
         help "create"
         exit 1
-      end
-
-      stime=Time.new.iso8601.gsub(/:/,'-')
-
-      if options[:name].nil?
-        if options[:environment].nil?
-          options[:name]="#{options[:database]}-#{stime}"
-        else
-          options[:name]="#{options[:environment]}-#{stime}"
-        end
       end
 
       s = Automat::RDS::Snapshot.new(options)
