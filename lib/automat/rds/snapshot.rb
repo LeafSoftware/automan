@@ -1,5 +1,6 @@
 require 'automat/base'
 require 'automat/rds/errors'
+require 'time'
 
 module Automat::RDS
   class Snapshot < Automat::Base
@@ -30,18 +31,21 @@ module Automat::RDS
       set_prunable(myname)
     end
 
-    def default_snapshot_name(db)
+    def db_environment(db)
       arn = db_arn(db.id)
-      env = tags(arn)['Name']
-      stime=Time.new.iso8601.gsub(/:/,'-')
+      return tags(arn)['Name']
+    end
 
-      return env+"-"+stime
+    def default_snapshot_name(db)
+      env   = db_environment db
+      stime = Time.new.iso8601.gsub(/:/,'-')
+
+      return env + "-" + stime
     end
 
     def find_db_by_environment(environment)
       rds.db_instances.each do |db|
-        arn = db_arn(db.id)
-        if tags(arn)['Name'] == environment
+        if db_environment(db) == environment
           return db
         end
       end
