@@ -1,5 +1,6 @@
 require 'thor'
 require 'automat'
+require 'time'
 
 module Automat::Cli
   class Snapper < Thor
@@ -10,9 +11,9 @@ module Automat::Cli
     desc "create", "create a snapshot"
 
     option :name,
-      required: true,
       aliases: "-n",
-      desc: "what to name the snapshot"
+      desc: "what to name the snapshot",
+      default: Time.new.iso8601.gsub(/:/,'-')
 
     option :database,
       aliases: "-d",
