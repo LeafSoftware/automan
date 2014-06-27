@@ -16,7 +16,7 @@ module Automat::Beanstalk
       super
       @wait = Wait.new({
         attempts: 10,
-        delay:    30,   # 10 x 30s == 5m
+        delay:    60,   # 10 x 60s == 10m
         debug:    true,
         logger:   @logger,
 
