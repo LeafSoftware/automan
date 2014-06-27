@@ -108,6 +108,7 @@ module Automat::Beanstalk
       log_options
       if config_template_exists?
         logger.warn "Configuration template #{name} for #{application} already exists. Doing nothing."
+        return
       end
       logger.info "Creating configuration template #{name} for #{application}."
       create_config_template
