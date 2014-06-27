@@ -4,4 +4,10 @@ module Automat::Beanstalk
 
   class ELBNameNotFoundError < StandardError
   end
+
+  class MissingManifestError < StandardError
+  end
+
+  class MissingPackageFileError < StandardError
+  end
 end

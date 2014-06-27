@@ -1,8 +1,10 @@
 require 'automat/base'
 require 'automat/beanstalk/version'
+require 'automat/beanstalk/errors'
 require 'automat/mixins/utils'
 require 'pathname'
 require 'logger'
+require 'json'
 
 #
 # TODO: check status of environments and only update if status is 'Ready'
@@ -15,6 +17,7 @@ module Automat::Beanstalk
                :version_label,
                :package,
                :environment,
+               :manifest,
                :configuration_template,
                :configuration_options,
                :solution_stack_name,
@@ -25,6 +28,26 @@ module Automat::Beanstalk
     def initialize(options=nil)
       @number_to_keep = 0
       super
+    end
+
+    def read_manifest
+      # make sure manifest exists
+      bucket, key = parse_s3_path manifest
+      obj = s3.buckets[bucket].objects[key]
+
+      if !obj.exists?
+        raise MissingManifestError, "Manifest #{manifest} does not exist"
+      end
+
+      # read manifest from s3 location
+      json = obj.read
+
+      # parse it from json
+      data = JSON.parse json
+
+      # set version_label and package
+      self.version_label = data['version_label']
+      self.package       = data['package']
     end
 
     def package_exists?
@@ -120,6 +143,10 @@ module Automat::Beanstalk
 
     def deploy
       logger.info "Deploying service."
+
+      if !manifest.nil?
+        read_manifest
+      end
 
       log_options
 

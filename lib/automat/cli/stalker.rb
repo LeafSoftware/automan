@@ -42,14 +42,16 @@ module Automat::Cli
       desc: "environment tag (e.g. dev, stage, prd)"
 
     option :version_label,
-      required: true,
       aliases: "-l",
       desc: "beanstalk application version label"
 
     option :package,
-      required: true,
       aliases: "-p",
       desc: "s3 path to version package (s3://bucket/package.zip)"
+
+    option :manifest,
+      aliases: "-m",
+      desc: "s3 path to manifest file containing version label and package location"
 
     option :configuration_template,
       required: true,
@@ -62,6 +64,14 @@ module Automat::Cli
       desc: "cull old versions and keep newest NUMBER_TO_KEEP"
 
     def deploy
+      # you must specify either a manifest file or both package and version label
+      if options[:manifest].nil? &&
+        (options[:version_label].nil? || options[:package].nil?)
+        puts "Must specify either manifest or both version_label and package"
+        help "deploy"
+        exit 1
+      end
+
       Automat::Beanstalk::Deployer.new(options).deploy
     end
 
@@ -172,6 +182,37 @@ module Automat::Cli
 
     def cull_versions
       Automat::Beanstalk::Version.new(options).cull_versions(options[:number_to_keep])
+    end
+
+    desc "package", "upload a zip file to s3 to be deployed to beanstalk"
+
+    option :destination,
+      required: true,
+      aliases: "-d",
+      desc: "full s3 path of uploaded package"
+
+    option :source,
+      required: true,
+      aliases: "-s",
+      desc: "path to local zip file to be uploaded"
+
+    option :manifest,
+      aliases: "-m",
+      desc: "if set, also upload a manifest file with full s3 path MANIFEST"
+
+    option :version_label,
+      aliases: "-l",
+      desc: "version_label for manifest, required if -m"
+
+    def package
+
+      if !options[:manifest].nil? && options[:version_label].nil?
+        puts "Must specify version_label when uploading manifest file"
+        help "package"
+        exit 1
+      end
+
+      Automat::Beanstalk::Package.new(options).upload_package
     end
   end
 end
