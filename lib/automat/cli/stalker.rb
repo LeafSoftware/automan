@@ -135,6 +135,33 @@ module Automat::Cli
       Automat::Beanstalk::Configuration.new(options).create
     end
 
+    desc "update-config", "update beanstalk configuration template"
+
+    option :name,
+      required: true,
+      aliases: "-n",
+      desc: "name of the configuration template"
+
+    option :application,
+      required: true,
+      aliases: "-a",
+      desc: "name of the application"
+
+    option :template,
+      required: true,
+      aliases: "-t",
+      desc: "file containing configuration options"
+
+    option :platform,
+      required: "true",
+      aliases: "-p",
+      default: "64bit Windows Server 2012 running IIS 8",
+      desc: "beanstalk solution stack name"
+
+    def update_config
+      Automat::Beanstalk::Configuration.new(options).update
+    end
+
     desc "delete-config", "delete beanstalk configuration template"
 
     option :name,

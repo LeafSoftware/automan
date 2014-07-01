@@ -22,11 +22,17 @@ module Automat::Cli
       aliases: "-n",
       desc: "what to name the snapshot"
 
-    option :enable_pruning,
+    option :prune,
       aliases: "-p",
       type: :boolean,
       default: true,
-      desc: "delete snapshots older than 30 days"
+      desc: "make this snapshot prunable and delete other prunable snapshots older than 30 days"
+
+    option :wait_for_completion,
+      aliases: "-w",
+      type: :boolean,
+      default: false,
+      desc: "wait until snapshot is finished before exiting script"
 
     def create
       if options[:database].nil? && options[:environment].nil?
@@ -37,7 +43,7 @@ module Automat::Cli
 
       s = Automat::RDS::Snapshot.new(options)
       s.create
-      s.prune if options[:enable_pruning]
+      s.prune_snapshots if options[:prune]
     end
 
     desc "delete", "delete a snapshot"

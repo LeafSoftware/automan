@@ -1,10 +1,28 @@
 require 'automat/base'
 require 'automat/rds/errors'
 require 'time'
+require 'wait'
 
 module Automat::RDS
   class Snapshot < Automat::Base
-    add_option :database, :name, :environment
+    add_option :database,
+               :name,
+               :environment,
+               :prune,
+               :wait_for_completion
+
+    def initialize(options=nil)
+      @prune = true
+      @wait_for_completion = false
+      super
+      @wait = Wait.new({
+        delay: 30,
+        attempts: 20, # 20 x 30s == 10m
+        debug: true,
+        rescuer:  WaitRescuer.new(),
+        logger:   @logger
+      })
+    end
 
     include Automat::Mixins::Utils
 
@@ -19,17 +37,40 @@ module Automat::RDS
     end
 
     def create
+      log_options
+
       db = find_db
 
       myname = name.nil? ? default_snapshot_name(db) : name.dup
 
+      self.log_aws_calls = true
+      self.rds = AWS::RDS.new
       logger.info "Creating snapshot #{myname} for #{db.id}"
-      db.create_snapshot(myname)
-      set_prunable(myname)
+      snap = db.create_snapshot(myname)
+
+      if prune == true
+        logger.info "Setting snapshot to be prunable"
+        set_prunable(snap)
+      end
+
+      if wait_for_completion == true
+        wait.until do
+          logger.info "Waiting for snapshot to complete..."
+          snapshot_finished?(snap)
+        end
+        logger.info "Snapshot finished (or timed out)."
+      end
+    end
+
+    def snapshot_finished?(snapshot)
+      unless snapshot.exists?
+        return false
+      end
+      snapshot.status == "available"
     end
 
     def db_environment(db)
-      arn = db_arn(db.id)
+      arn = db_arn(db)
       return tags(arn)['Name']
     end
 
@@ -49,22 +90,20 @@ module Automat::RDS
       return nil
     end
 
-    def db_arn(database_name)
-      db = rds.db_instances[database_name]
-      region = region_from_az(db.availability_zone_name)
-      "arn:aws:rds:#{region}:#{account}:db:#{database_name}"
+    def db_arn(database)
+      region = region_from_az(database.availability_zone_name)
+      "arn:aws:rds:#{region}:#{account}:db:#{database.id}"
     end
 
-    def snapshot_arn(snapshot_name)
-      snapshot = rds.db_snapshots[snapshot_name]
+    def snapshot_arn(snapshot)
       region = region_from_az(snapshot.availability_zone_name)
-      "arn:aws:rds:#{region}:#{account}:snapshot:#{snapshot_name}"
+      "arn:aws:rds:#{region}:#{account}:snapshot:#{snapshot.id}"
     end
 
     # tag with CanPrune
-    def set_prunable(snapshot_name)
+    def set_prunable(snapshot)
       opts = {
-        resource_name: snapshot_arn(snapshot_name),
+        resource_name: snapshot_arn(snapshot),
         tags: [ {key: 'CanPrune', value: 'yes'} ]
       }
       response = rds.client.add_tags_to_resource opts
@@ -108,8 +147,7 @@ module Automat::RDS
       time.utc < (Time.now.utc - 60*60*24*30)
     end
 
-    def prune
-      log_options
+    def prune_snapshots
       logger.info "Pruning old db snapshots"
 
       snapshots = rds.db_instances[database].snapshots
