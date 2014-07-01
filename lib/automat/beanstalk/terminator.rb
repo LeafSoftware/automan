@@ -5,6 +5,26 @@ module Automat::Beanstalk
   class Terminator < Automat::Base
     add_option :name
 
+    def environment_exists?(environment_name)
+      opts = {
+        environment_names: [ environment_name ]
+      }
+
+      response = eb.describe_environments opts
+
+      unless response.successful?
+        raise RequestFailedError "describe_environments failed: #{response.error}"
+      end
+
+      response.data[:environments].each do |e|
+        if e[:environment_name] == environment_name
+          return true
+        end
+      end
+
+      false
+    end
+
     def terminate_environment
       logger.info "terminating environment #{name}"
 
@@ -21,6 +41,12 @@ module Automat::Beanstalk
 
     def terminate
       log_options
+
+      if !environment_exists?(name)
+        logger.warn "Environment #{name} does not exist. Doing nothing."
+        return
+      end
+
       terminate_environment
     end
   end
