@@ -25,8 +25,8 @@ module Automat::Ec2
       end
     end
 
-    def is_more_than_week_old?(mytime)
-      if mytime.class == Time && mytime<Time.now.utc-(60*60*24*3)
+    def is_more_than_month_old?(mytime)
+      if mytime.class == Time && mytime<Time.now.utc-(60*60*24*30)
         true
       else
         false
@@ -91,7 +91,7 @@ module Automat::Ec2
       allsnapshots.each do |onesnapshot|
         next unless onesnapshot.status == :completed
         mycreatetime=onesnapshot.start_time
-        if is_more_than_week_old?(mycreatetime) and onesnapshot.tags["CanPrune"]=="yes"
+        if is_more_than_month_old?(mycreatetime) and onesnapshot.tags["CanPrune"]=="yes"
           logger.info "adding snapshot #{onesnapshot.id} to condemed list"
           condemnedsnaps.push(onesnapshot.id)
         end
