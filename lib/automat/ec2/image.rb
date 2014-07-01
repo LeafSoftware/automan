@@ -39,13 +39,12 @@ module Automat::Ec2
     end
 
     def check_for_ebs(block_devices)
-      foundit=false
       block_devices.each do |device|
         if (!device.nil? && !device[:ebs].nil? && !device[:ebs][:snapshot_id].nil?)
-          foundit=true
+          return true
         end
       end
-      return foundit
+      return false
     end
 
     def set_prunable(newami)
@@ -96,8 +95,10 @@ module Automat::Ec2
           condemnedsnaps.push(onesnapshot.id)
         end
       end
-      deregister_images(condemnedsnaps)
-      delete_snapshots(condemnedsnaps)
+      if !condemnedsnaps.empty?
+        deregister_images(condemnedsnaps)
+        delete_snapshots(condemnedsnaps)
+      end
     end
 
   end
