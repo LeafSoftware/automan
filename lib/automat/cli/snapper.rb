@@ -1,12 +1,8 @@
-require 'thor'
 require 'automat'
 require 'time'
 
 module Automat::Cli
-  class Snapper < Thor
-    def self.exit_on_failure?
-        return true
-    end
+  class Snapper < Base
 
     desc "create", "create a snapshot"
 

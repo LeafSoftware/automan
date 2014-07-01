@@ -1,11 +1,7 @@
-require 'thor'
 require 'automat'
 
 module Automat::Cli
-  class Scanner < Thor
-    def self.exit_on_failure?
-        return true
-    end
+  class Scanner < Base
 
     desc "show-instances", "Show instance ips and passwords for an environment"
 

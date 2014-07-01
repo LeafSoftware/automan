@@ -1,4 +1,5 @@
 require 'automat/version'
+require 'automat/cli/base'
 require 'automat/beanstalk/deployer'
 require 'automat/beanstalk/router'
 require 'automat/beanstalk/application'

@@ -1,12 +1,7 @@
-require 'thor'
 require 'automat'
 
 module Automat::Cli
-  class Stalker < Thor
-
-    def self.exit_on_failure?
-        return true
-    end
+  class Stalker < Base
 
     desc "alias", "point dns to elb"
 
