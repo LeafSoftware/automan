@@ -19,4 +19,8 @@ module Automat::Cloudformation
 
   class MissingAutoScalingGroupError < StandardError
   end
+
+  class MissingManifestError < StandardError
+  end
+
 end

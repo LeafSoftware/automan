@@ -26,6 +26,10 @@ module Automat::Cli
       default: false,
       desc: "set to true to update existing stack"
 
+    option :manifest,
+      aliases: "-m",
+      desc: "s3 path to manifest file containing version and package location"
+
     option :parameters,
       type: :hash,
       default: {},
