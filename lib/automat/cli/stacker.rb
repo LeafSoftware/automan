@@ -1,4 +1,5 @@
 require 'automat'
+require 'json'
 
 module Automat::Cli
   class Stacker < Base
@@ -66,7 +67,7 @@ module Automat::Cli
 
     def params
       h = Automat::Cloudformation::Launcher.new(options).parse_template_parameters
-      puts h.inspect
+      say JSON.pretty_generate h
     end
   end
 end
