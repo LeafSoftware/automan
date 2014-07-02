@@ -36,6 +36,25 @@ module Automat::RDS
       db
     end
 
+    def database_available?(database)
+      database.db_instance_status == 'available'
+    end
+
+    def wait_until_database_available(database)
+      state_wait = Wait.new({
+        delay:    10,
+        attempts: 20,
+        debug:    true,
+        rescuer:  WaitRescuer.new(),
+        logger:   @logger
+      })
+
+      state_wait.until do
+        logger.info "Waiting for database #{database.id} to be available"
+        database_available?(database)
+      end
+    end
+
     def create
       log_options
 
@@ -43,8 +62,11 @@ module Automat::RDS
 
       myname = name.nil? ? default_snapshot_name(db) : name.dup
 
-      self.log_aws_calls = true
-      self.rds = AWS::RDS.new
+      #self.log_aws_calls = true
+      #self.rds = AWS::RDS.new
+
+      wait_until_database_available(db)
+
       logger.info "Creating snapshot #{myname} for #{db.id}"
       snap = db.create_snapshot(myname)
 
