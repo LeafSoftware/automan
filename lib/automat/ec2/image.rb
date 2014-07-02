@@ -3,7 +3,7 @@ require 'automat/ec2/errors'
 
 module Automat::Ec2
   class Image < Automat::Base
-    add_option :instance, :name, :environment, :prune
+    add_option :instance, :name, :prune
 
     include Automat::Mixins::Utils
 
