@@ -11,6 +11,8 @@ module Automat::Cloudformation
         if cfn.validate_template(cfnstring).has_key?(:code)
           logger.error "Validation failure on #{cfnfile}"
           healthy=false
+        else
+          logger.info "Validation succeeded on #{cfnfile}"
         end
       end
       return healthy
@@ -20,8 +22,8 @@ module Automat::Cloudformation
       log_options
 
       if validate_templates
+        logger.info "Beginning to upload templates to s3"
         Dir.glob(templatefiles) do |cfnfile|
-          logger.info "uploading #{cfnfile}"
           options={ :localfile => cfnfile, :s3file => "#{s3path}/#{File.basename(cfnfile)}" }
           s = Automat::S3::Uploader.new(options)
           s.upload
