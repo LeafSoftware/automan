@@ -18,7 +18,15 @@ module Automat::Beanstalk
 
       response.data[:environments].each do |e|
         if e[:environment_name] == environment_name
-          return true
+          logger.debug "#{environment_name} has status: #{e[:status]}"
+
+          case e[:status]
+          when 'Terminated', 'Terminating'
+            return false
+          else
+            return true
+          end
+
         end
       end
 
