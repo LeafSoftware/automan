@@ -62,6 +62,22 @@ module Automat::Cli
       Automat::Cloudformation::Replacer.new(options).replace_instances
     end
 
+    desc "upload-templates", "validate and upload cloudformation templates"
+
+    option :templatefiles,
+      required: true,
+      aliases: "-t",
+      desc: "single or globbed templates"
+
+    option :s3path,
+      required: true,
+      aliases: "-p",
+      desc: "s3 path to folder to drop the templates"
+
+    def upload_templates
+      Automat::Cloudformation::Uploader.new(options).upload_templates
+    end
+
     desc "params", "print output from validate_template"
 
     option :template,

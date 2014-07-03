@@ -1,6 +1,5 @@
 require 'thor'
 require 'automat'
-require 'time'
 
 module Automat::Cli
   class Baker < Thor
