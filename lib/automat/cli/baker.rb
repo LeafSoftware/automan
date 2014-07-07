@@ -32,5 +32,32 @@ module Automat::Cli
       s.prune_amis if options[:prune]
     end
 
+    desc "upload", "upload a chef repo"
+
+    option :repopath,
+      aliases: "-r",
+      desc: "path to chef repo",
+      required: true
+
+    option :s3path,
+      aliases: "-s",
+      desc: "s3 path to chef artifacts",
+      required: true
+
+    option :chefver,
+      aliases: "-c",
+      desc: "chef version",
+      required: true
+
+    option :tempdir,
+      aliases: "-t",
+      desc: "temporary directory",
+      required: true
+
+    def upload
+
+      s = Automat::Chef::Uploader.new(options)
+      s.upload
+    end
   end
 end
