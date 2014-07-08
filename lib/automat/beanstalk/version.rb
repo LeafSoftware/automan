@@ -56,18 +56,21 @@ module Automat::Beanstalk
     end
 
     def delete_by_label(version_label)
-      logger.info "deleting version #{label} for application #{application}"
+      logger.info "deleting version #{version_label} for application #{application}"
 
       opts = {
         application_name: application,
-        version_label: label,
+        version_label: version_label,
         delete_source_bundle: true
       }
 
-      response = eb.delete_application_version opts
-
-      unless response.successful?
-        raise RequestFailedError, "delete_application_version failed #{response.error}"
+      begin
+        response = eb.delete_application_version opts
+        unless response.successful?
+          raise RequestFailedError, "delete_application_version failed #{response.error}"
+        end
+      rescue AWS::ElasticBeanstalk::Errors::SourceBundleDeletionFailure => e
+        logger.warn e.message
       end
     end
 

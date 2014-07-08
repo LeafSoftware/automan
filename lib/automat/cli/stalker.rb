@@ -206,6 +206,25 @@ module Automat::Cli
       Automat::Beanstalk::Version.new(options).cull_versions(options[:number_to_keep])
     end
 
+    desc "show-versions", "show all versions for an application"
+
+    option :application,
+      required: true,
+      aliases: "-a",
+      desc: "name of the application"
+
+    def show_versions
+      versions = Automat::Beanstalk::Version.new(options).versions
+      versions.each do |v|
+        tokens = [
+          v[:application_name],
+          v[:version_label],
+          v[:date_created].iso8601
+        ]
+        say tokens.join("\t")
+      end
+    end
+
     desc "package", "upload a zip file to s3 to be deployed to beanstalk"
 
     option :destination,
