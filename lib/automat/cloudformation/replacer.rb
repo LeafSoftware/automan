@@ -31,10 +31,14 @@ module Automat::Cloudformation
     # when CREATE_FAILED | .*ROLLBACK_.* | ^DELETE_.* then raise error
     # else try again
     #
-    def ok_to_replace_instances?(stack_status)
+    def ok_to_replace_instances?(stack_status, last_mod_time)
       case stack_status
-      when 'CREATE_COMPLETE', 'UPDATE_COMPLETE'
-        true
+      when 'UPDATE_COMPLETE'
+        if (Time.now - last_mod_time) <= (5*60)
+          true
+        else
+          false
+        end
       when 'CREATE_FAILED', /^.*ROLLBACK.*$/, /^DELETE.*/
         raise StackBrokenError, "Stack is in broken state #{stack_status}"
       else
@@ -67,9 +71,8 @@ module Automat::Cloudformation
 
       ex = WaitTimedOutError.new "Timed out waiting to replace instances."
       wait_until(ex) do
-
-        ok_to_replace_instances?(cfn.stacks[name].status)
-
+        stack = cfn.stacks[name]
+        ok_to_replace_instances?(stack.status, stack.last_updated_time)
       end
 
       logger.info "replacing all auto-scaling instances in #{name}"
