@@ -11,6 +11,8 @@ module Automat::RDS
                :prune,
                :wait_for_completion
 
+    MAX_SNAPSHOTS = 50
+
     def initialize(options=nil)
       @prune = true
       @wait_for_completion = false
@@ -55,6 +57,10 @@ module Automat::RDS
       end
     end
 
+    def snapshot_count
+      rds.db_instances[database].snapshots.count
+    end
+
     def create
       log_options
 
@@ -62,10 +68,14 @@ module Automat::RDS
 
       myname = name.nil? ? default_snapshot_name(db) : name.dup
 
-      #self.log_aws_calls = true
-      #self.rds = AWS::RDS.new
-
       wait_until_database_available(db)
+
+      if snapshot_count >= MAX_SNAPSHOTS
+        logger.info "Too many snapshots, deleting oldest prunable."
+        old = oldest_prunable_snapshot
+        logger.info "Deleting #{old.id}"
+        old.delete
+      end
 
       logger.info "Creating snapshot #{myname} for #{db.id}"
       snap = db.create_snapshot(myname)
@@ -167,6 +177,11 @@ module Automat::RDS
     # older than a month?
     def too_old?(time)
       time.utc < (Time.now.utc - 60*60*24*30)
+    end
+
+    def oldest_prunable_snapshot
+      snapshots = rds.db_instances[database].snapshots
+      snapshots.sort_by { |s| s.created_at }.first
     end
 
     def prune_snapshots
