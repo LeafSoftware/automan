@@ -60,6 +60,10 @@ module Automat::Cloudformation
       as.groups[asg_id]
     end
 
+    def stack_was_just_updated?(stack)
+      stack.status == 'UPDATE_COMPLETE' && (Time.now - stack.last_updated_time) <= (5*60)
+    end
+
     # terminate all running instances in the ASG so that new
     # machines with the latest build will be started
     def replace_instances
@@ -69,9 +73,14 @@ module Automat::Cloudformation
         raise StackDoesNotExistError, "Stack #{name} does not exist."
       end
 
+      stack = cfn.stacks[name]
+      unless stack_was_just_updated?(stack)
+        logger.info "stack was not updated recently, not replacing instances."
+        return
+      end
+
       ex = WaitTimedOutError.new "Timed out waiting to replace instances."
       wait_until(ex) do
-        stack = cfn.stacks[name]
         ok_to_replace_instances?(stack.status, stack.last_updated_time)
       end
 
