@@ -66,12 +66,16 @@ module Automat::RDS
 
       db = find_db
 
+      if db.nil? || !db.exists?
+        raise DatabaseDoesNotExistError, "Database for #{environment} does not exist"
+      end
+
       myname = name.nil? ? default_snapshot_name(db) : name.dup
 
       wait_until_database_available(db)
 
       if snapshot_count >= MAX_SNAPSHOTS
-        logger.info "Too many snapshots, deleting oldest prunable."
+        logger.info "Too many snapshots (>= #{MAX_SNAPSHOTS}), deleting oldest prunable."
         old = oldest_prunable_snapshot
         logger.info "Deleting #{old.id}"
         old.delete

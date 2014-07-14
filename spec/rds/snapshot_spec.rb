@@ -28,4 +28,31 @@ describe Automat::RDS::Snapshot do
     end
 
   end
+
+  describe '#create' do
+    subject(:s) do
+      AWS.stub!
+      s = Automat::RDS::Snapshot.new
+      s.logger = Logger.new('/dev/null')
+      s
+    end
+
+    it "raises error if could not find database" do
+      s.stub(:find_db).and_return(nil)
+      expect {
+        s.create
+      }.to raise_error Automat::RDS::DatabaseDoesNotExistError
+    end
+
+    it "raises error if RDS says database does not exist" do
+      db = double(:db)
+      db.stub(:exists?).and_return(false)
+      s.stub(:find_db).and_return(db)
+
+      expect {
+        s.create
+      }.to raise_error Automat::RDS::DatabaseDoesNotExistError
+    end
+
+  end
 end
