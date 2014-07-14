@@ -53,6 +53,10 @@ module Automat::Cli
       aliases: "-t",
       desc: "beanstalk configuration template name"
 
+    option :beanstalk_name,
+      aliases: "-b",
+      desc: "alternate beanstalk environment name"
+
     option :number_to_keep,
       aliases: "-n",
       type: :numeric,

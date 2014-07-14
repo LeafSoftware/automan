@@ -21,7 +21,8 @@ module Automat::Beanstalk
                :configuration_template,
                :configuration_options,
                :solution_stack_name,
-               :number_to_keep
+               :number_to_keep,
+               :beanstalk_name
 
     include Automat::Mixins::Utils
 
@@ -60,6 +61,9 @@ module Automat::Beanstalk
       # The name can contain only letters, numbers, and hyphens.
       # It cannot start or end with a hyphen.
       env_name = "#{name}-#{environment}"
+      unless beanstalk_name.nil?
+        env_name = beanstalk_name.dup
+      end
 
       if env_name.length > 23
         env_name = env_name[0,23]
