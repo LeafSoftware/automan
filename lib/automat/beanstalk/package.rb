@@ -1,6 +1,4 @@
-require 'automat/base'
-require 'automat/mixins/utils'
-require 'automat/beanstalk/errors'
+require 'automat'
 require 'pathname'
 require 'json'
 

@@ -1,6 +1,4 @@
-require 'automat/base'
-require 'automat/mixins/utils'
-require 'automat/cloudformation/errors'
+require 'automat'
 require 'json'
 
 # TODO: add timeout
@@ -17,17 +15,17 @@ module Automat::Cloudformation
 
     include Automat::Mixins::Utils
 
-    def read_manifest
-      # make sure manifest exists
-      bucket, key = parse_s3_path manifest
-      obj = s3.buckets[bucket].objects[key]
+    def manifest_exists?
+      s3_object_exists? manifest
+    end
 
-      if !obj.exists?
+    def read_manifest
+      if !manifest_exists?
         raise MissingManifestError, "Manifest #{manifest} does not exist"
       end
 
       # read manifest from s3 location
-      json = obj.read
+      json = s3_read(manifest)
 
       # parse it from json
       data = JSON.parse json
@@ -93,6 +91,10 @@ module Automat::Cloudformation
       cfn.stacks.create name, template_handle(template), opts
     end
 
+    def update_stack(name, opts)
+      cfn.stacks[name].update( opts )
+    end
+
     def update
       opts = {
         template: template_handle(template),
@@ -105,7 +107,7 @@ module Automat::Cloudformation
       # if cfn determines that no updates are to be performed,
       # it raises a ValidationError
       begin
-        cfn.stacks[name].update( opts )
+        update_stack(name, opts)
       rescue AWS::CloudFormation::Errors::ValidationError => e
         if e.message != "No updates are to be performed."
           raise e

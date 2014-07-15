@@ -10,4 +10,7 @@ module Automat::Beanstalk
 
   class MissingPackageFileError < StandardError
   end
+
+  class InvalidEnvironmentStatusError < StandardError
+  end
 end

@@ -1,4 +1,4 @@
-require 'automat/base'
+require 'automat'
 require 'zlib'
 require 'archive/tar/minitar'
 include Archive::Tar
@@ -14,10 +14,13 @@ module Automat::Chef
       tgz = Zlib::GzipWriter.new(File.open("#{tempdir}/chef-repo.tgz", 'wb'))
       Minitar.pack(repopath, tgz)
 
-      versions=[ "#{chefver}","latest"]
-      versions.each do |myver|
-        options={ :localfile => "#{tempdir}/chef-repo.tgz", :s3file => "#{s3path}/#{myver}/chef-repo.tgz" }
-        s = Automat::S3::Uploader.new(options)
+      versions = ["#{chefver}", "latest"]
+      versions.each do |version|
+        options = {
+          localfile: "#{tempdir}/chef-repo.tgz",
+          s3file: "#{s3path}/#{version}/chef-repo.tgz"
+        }
+        s = Automat::S3::Uploader.new options
         s.upload
       end
 

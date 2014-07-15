@@ -1,5 +1,4 @@
 require 'automat'
-require 'automat/cloudformation/errors'
 
 describe Automat::Cloudformation::Replacer do
   it { should respond_to :name }

@@ -1,8 +1,5 @@
 require 'json'
-
-require 'automat/base'
-require 'automat/mixins/utils'
-require 'automat/beanstalk/errors'
+require 'automat'
 
 module Automat::Beanstalk
   class Configuration < Automat::Base

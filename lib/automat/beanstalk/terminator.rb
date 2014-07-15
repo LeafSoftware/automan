@@ -1,5 +1,4 @@
-require 'automat/base'
-require 'automat/beanstalk/errors'
+require 'automat'
 
 module Automat::Beanstalk
   class Terminator < Automat::Base

@@ -1,6 +1,4 @@
-require 'automat/base'
-require 'automat/beanstalk/errors'
-require 'automat/mixins/utils'
+require 'automat'
 
 module Automat::Beanstalk
   class Version < Automat::Base
@@ -50,8 +48,7 @@ module Automat::Beanstalk
       response = eb.create_application_version opts
 
       unless response.successful?
-        logger.error "create_application_version failed: #{response.error}"
-        exit 1
+        raise RequestFailedError, "create_application_version failed: #{response.error}"
       end
     end
 

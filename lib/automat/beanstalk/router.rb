@@ -1,6 +1,4 @@
-require 'automat/base'
-require 'automat/beanstalk/errors'
-require 'automat/wait_rescuer'
+require 'automat'
 require 'wait'
 
 module Automat::Beanstalk

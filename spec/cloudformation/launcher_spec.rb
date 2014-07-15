@@ -1,7 +1,6 @@
 require 'automat'
 
 describe Automat::Cloudformation::Launcher do
-  it { should respond_to :cfn }
   it { should respond_to :name }
   it { should respond_to :template }
   it { should respond_to :parameters }
@@ -12,6 +11,30 @@ describe Automat::Cloudformation::Launcher do
   it { should respond_to :launch_or_update }
   it { should respond_to :launch }
   it { should respond_to :update }
+  it { should respond_to :read_manifest }
+
+  describe '#read_manifest' do
+    subject(:s) do
+      AWS.stub!
+      s = Automat::Cloudformation::Launcher.new
+      s
+    end
+
+    it 'raises MissingManifestError if manifest does not exist' do
+      s.stub(:manifest_exists?).and_return(false)
+      expect {
+        s.read_manifest
+      }.to raise_error(Automat::Cloudformation::MissingManifestError)
+    end
+
+    it 'merges manifest contents into parameters hash' do
+      s.stub(:manifest_exists?).and_return(true)
+      s.stub(:s3_read).and_return('{"foo": "bar", "big": "poppa"}')
+      s.parameters = {'foo'=> 'baz', 'fo'=> 'shizzle'}
+      s.read_manifest
+      s.parameters.should eq({'foo' => 'bar', 'fo' => 'shizzle', 'big' => 'poppa'})
+    end
+  end
 
   describe '#parse_template_parameters' do
     subject(:s) do
@@ -50,6 +73,7 @@ describe Automat::Cloudformation::Launcher do
     subject(:s) do
       AWS.stub!
       s = Automat::Cloudformation::Launcher.new
+      s.logger = Logger.new('/dev/null')
       s.parameters = {}
       s
     end
@@ -88,6 +112,61 @@ describe Automat::Cloudformation::Launcher do
       expect {
         s.validate_parameters
       }.not_to raise_error
+    end
+  end
+
+  describe '#update' do
+    subject(:s) do
+      AWS.stub!
+      s = Automat::Cloudformation::Launcher.new
+      s.logger = Logger.new('/dev/null')
+      s.stub(:template_handle).and_return('foo')
+      s
+    end
+
+    it "ignores AWS::CloudFormation::Errors::ValidationError when no updates are to be performed" do
+      s.stub(:update_stack).and_raise AWS::CloudFormation::Errors::ValidationError.new("No updates are to be performed.")
+      expect {
+        s.update
+      }.to_not raise_error
+    end
+
+    it 're-raises any other ValidationError' do
+      s.stub(:update_stack).and_raise AWS::CloudFormation::Errors::ValidationError.new("foo")
+      expect {
+        s.update
+      }.to raise_error AWS::CloudFormation::Errors::ValidationError
+    end
+  end
+
+  describe '#launch_or_update' do
+    subject(:s) do
+      AWS.stub!
+      s = Automat::Cloudformation::Launcher.new
+      s.logger = Logger.new('/dev/null')
+      s.stub(:validate_parameters)
+      s
+    end
+
+    it "launches a new stack if it does not exist" do
+      s.stub(:stack_exists?).and_return(false)
+      s.should_receive(:launch)
+      s.launch_or_update
+    end
+
+    it "updates an existing stack if update is enabled" do
+      s.stub(:stack_exists?).and_return(true)
+      s.stub(:enable_update).and_return(true)
+      s.should_receive(:update)
+      s.launch_or_update
+    end
+
+    it "raises an error when updating an existing stack w/o update enabled" do
+      s.stub(:stack_exists?).and_return(true)
+      s.stub(:enable_update).and_return(false)
+      expect {
+        s.launch_or_update
+      }.to raise_error Automat::Cloudformation::StackExistsError
     end
   end
 end

@@ -1,5 +1,4 @@
-require 'automat/base'
-require 'automat/beanstalk/errors'
+require 'automat'
 
 module Automat::Beanstalk
   class Application < Automat::Base
@@ -57,6 +56,7 @@ module Automat::Beanstalk
       log_options
       if application_exists?
         logger.warn "Application #{name} already exists. Doing nothing."
+        return
       end
       create_application
     end
@@ -65,6 +65,7 @@ module Automat::Beanstalk
       log_options
       if !application_exists?
         logger.warn "Application #{name} does not exist. Doing nothing."
+        return
       end
       delete_application
     end
