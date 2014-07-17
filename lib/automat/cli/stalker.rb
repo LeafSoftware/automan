@@ -177,6 +177,22 @@ module Automat::Cli
       Automat::Beanstalk::Configuration.new(options).delete
     end
 
+    desc "upload-config", "validate and upload beanstalk configuration template files to s3"
+
+    option :template_files,
+      required: true,
+      aliases: "-t",
+      desc: "File system glob of configuration templates to upload"
+
+    option :s3_path,
+      required: true,
+      aliases: "-p",
+      desc: "S3 path to destination"
+
+    def upload_config
+      Automat::Beanstalk::Uploader.new(options).upload_config_templates
+    end
+
     desc "delete-version", "delete an application version"
 
     option :application,

@@ -13,4 +13,10 @@ module Automat::Beanstalk
 
   class InvalidEnvironmentStatusError < StandardError
   end
+
+  class NoConfigurationTemplatesError < StandardError
+  end
+
+  class InvalidConfigurationTemplateError < StandardError
+  end
 end
