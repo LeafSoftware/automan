@@ -64,12 +64,12 @@ module Automat::Cli
 
     desc "upload-templates", "validate and upload cloudformation templates"
 
-    option :templatefiles,
+    option :template_files,
       required: true,
       aliases: "-t",
       desc: "single or globbed templates"
 
-    option :s3path,
+    option :s3_path,
       required: true,
       aliases: "-p",
       desc: "s3 path to folder to drop the templates"

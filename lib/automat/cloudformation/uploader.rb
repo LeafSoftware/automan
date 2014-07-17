@@ -2,35 +2,55 @@ require 'automat/base'
 
 module Automat::Cloudformation
   class Uploader < Automat::Base
-    add_option :templatefiles, :s3path
+    add_option :template_files, :s3_path
 
-    def validate_templates
-      healthy=true
-      Dir.glob(templatefiles) do |cfnfile|
-        cfnstring=File.open(cfnfile, 'rb') { |f| f.read }
-        if cfn.validate_template(cfnstring).has_key?(:code)
-          logger.error "Validation failure on #{cfnfile}"
-          healthy=false
-        else
-          logger.info "Validation succeeded on #{cfnfile}"
+    def templates
+      Dir.glob(template_files)
+    end
+
+    def template_valid?(template)
+      contents = File.read template
+      response = cfn.validate_template(contents)
+      if response.has_key?(:code)
+        return false
+        logger.warn "#{template} is invalid: #{response[:message]}"
+      else
+        return true
+      end
+    end
+
+    def all_templates_valid?
+      if templates.empty?
+        raise NoTemplatesError, "No stack templates found for #{template_files}"
+      end
+
+      valid = true
+      templates.each do |template|
+        unless template_valid?(template)
+          valid = false
         end
       end
-      return healthy
+      valid
+    end
+
+    def upload_file(file)
+      opts = {
+        localfile: file,
+        s3file:    "#{s3_path}/#{File.basename(file)}"
+      }
+      s = Automat::S3::Uploader.new opts
+      s.upload
     end
 
     def upload_templates
       log_options
 
-      if validate_templates
-        logger.info "Beginning to upload templates to s3"
-        Dir.glob(templatefiles) do |cfnfile|
-          options={ :localfile => cfnfile, :s3file => "#{s3path}/#{File.basename(cfnfile)}" }
-          s = Automat::S3::Uploader.new(options)
-          s.upload
-        end
-      else
-        logger.error "Aborting upload due to validation failure(s)"
-        exit 1
+      unless all_templates_valid?
+        raise InvalidTemplateError, "There are invalid templates. Halting upload."
+      end
+
+      templates.each do |template|
+        upload_file(template)
       end
     end
   end

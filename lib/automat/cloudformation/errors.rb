@@ -23,4 +23,9 @@ module Automat::Cloudformation
   class MissingManifestError < StandardError
   end
 
+  class NoTemplatesError < StandardError
+  end
+
+  class InvalidTemplateError < StandardError
+  end
 end
