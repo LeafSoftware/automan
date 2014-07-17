@@ -1,5 +1,4 @@
-require 'automat/base'
-require 'automat/ec2/errors'
+require 'automat'
 
 module Automat::Ec2
   class Instance < Automat::Base

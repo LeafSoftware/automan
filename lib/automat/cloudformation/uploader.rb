@@ -1,4 +1,4 @@
-require 'automat/base'
+require 'automat'
 
 module Automat::Cloudformation
   class Uploader < Automat::Base

@@ -1,6 +1,4 @@
 require 'automat'
-require 'automat/mixins/aws_caller'
-require 'automat/wait_rescuer'
 require 'logger'
 require 'wait'
 

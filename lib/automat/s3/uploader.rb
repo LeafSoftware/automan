@@ -1,6 +1,4 @@
-require 'automat/base'
-require 'automat/s3/errors'
-require 'automat/mixins/utils'
+require 'automat'
 
 module Automat::S3
   class Uploader < Automat::Base

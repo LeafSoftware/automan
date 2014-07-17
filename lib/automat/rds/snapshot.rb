@@ -1,5 +1,4 @@
-require 'automat/base'
-require 'automat/rds/errors'
+require 'automat'
 require 'time'
 require 'wait'
 
