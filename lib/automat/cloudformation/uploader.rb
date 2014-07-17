@@ -12,8 +12,8 @@ module Automat::Cloudformation
       contents = File.read template
       response = cfn.validate_template(contents)
       if response.has_key?(:code)
-        return false
         logger.warn "#{template} is invalid: #{response[:message]}"
+        return false
       else
         return true
       end
