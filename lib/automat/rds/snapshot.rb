@@ -177,14 +177,24 @@ module Automat::RDS
       tags(arn)['CanPrune'] == 'yes'
     end
 
+    def is_manual?(snapshot)
+      return snapshot.snapshot_type == 'manual'
+    end
+
     # older than a month?
     def too_old?(time)
       time.utc < (Time.now.utc - 60*60*24*30)
     end
 
     def oldest_prunable_snapshot
-      snapshots = rds.db_instances[database].snapshots
-      snapshots.sort_by { |s| s.created_at }.first
+      snapshots=rds.db_snapshots
+      prunablesnaps=[]
+      snapshots.each do |s|
+        if can_prune?(s) && is_manual?(s)
+          prunablesnaps.push(s)
+        end
+      end
+      prunablesnaps.sort_by { |s| s.created_at }.first
     end
 
     def prune_snapshots
