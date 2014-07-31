@@ -10,7 +10,11 @@ module Automat::RDS
                :prune,
                :wait_for_completion
 
-    MAX_SNAPSHOTS = 50
+    if ENV['MAX_SNAPSHOTS'].nil?
+      raise ParameterError, "MAX_SNAPSHOTS environment variable not defined"
+    else
+      MAX_SNAPSHOTS = ENV['MAX_SNAPSHOTS']
+    end
 
     def initialize(options=nil)
       @prune = true
