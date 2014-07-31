@@ -10,6 +10,8 @@ module Automat::RDS
                :prune,
                :wait_for_completion
 
+    attr_accessor :max_snapshots
+
     def initialize(options=nil)
       @prune = true
       @wait_for_completion = false
@@ -25,7 +27,7 @@ module Automat::RDS
       if ENV['MAX_SNAPSHOTS'].nil?
         raise ParameterError, "MAX_SNAPSHOTS environment variable not defined"
       else
-        MAX_SNAPSHOTS = ENV['MAX_SNAPSHOTS']
+        @max_snapshots = ENV['MAX_SNAPSHOTS']
       end
     end
 
@@ -77,8 +79,8 @@ module Automat::RDS
 
       wait_until_database_available(db)
 
-      if snapshot_count >= MAX_SNAPSHOTS
-        logger.info "Too many snapshots (>= #{MAX_SNAPSHOTS}), deleting oldest prunable."
+      if snapshot_count >= max_snapshots
+        logger.info "Too many snapshots (>= #{max_snapshots}), deleting oldest prunable."
         old = oldest_prunable_snapshot
         logger.info "Deleting #{old.id}"
         old.delete

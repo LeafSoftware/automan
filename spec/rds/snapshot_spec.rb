@@ -1,6 +1,8 @@
 require 'automat'
 require 'logger'
 
+ENV['MAX_SNAPSHOTS'] = "50"
+
 describe Automat::RDS::Snapshot do
   it { should respond_to :rds }
   it { should respond_to :create }
