@@ -27,7 +27,7 @@ module Automat::RDS
       if ENV['MAX_SNAPSHOTS'].nil?
         raise ParameterError, "MAX_SNAPSHOTS environment variable not defined"
       else
-        @max_snapshots = ENV['MAX_SNAPSHOTS']
+        @max_snapshots = ENV['MAX_SNAPSHOTS'].to_i
       end
     end
 
