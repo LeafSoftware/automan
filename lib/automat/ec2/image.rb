@@ -79,17 +79,24 @@ module Automat::Ec2
       ec2.snapshots[snapshot].tags["CanPrune"] = "yes"
     end
 
+    def my_images
+      ec2.images.with_owner('self')
+    end
+
     def deregister_images(snaplist)
-      my_images = ec2.images.with_owner('self')
-      my_images.each do |oneimage|
-        if oneimage.state != :available
-          logger.warn "AMI #{oneimage.id} could not be deleted because its state is #{oneimage.state}"
+      my_images.each do |image|
+        my_snapshot = image_snapshot(image)
+
+        next unless snaplist.include?(my_snapshot)
+
+        if image.state != :available
+          logger.warn "AMI #{image.id} could not be deleted because its state is #{image.state}"
           next
         end
 
-        if oneimage.tags["CanPrune"] == "yes" and snaplist.include?(oneimage.block_devices[0][:ebs][:snapshot_id])
-          logger.info "Deregistering AMI #{oneimage.id}"
-          oneimage.delete
+        if image.tags["CanPrune"] == "yes"
+          logger.info "Deregistering AMI #{image.id}"
+          image.delete
         end
       end
     end
@@ -116,12 +123,12 @@ module Automat::Ec2
         mycreatetime = onesnapshot.start_time
         if is_more_than_month_old?(mycreatetime) and onesnapshot.tags["CanPrune"] == "yes"
           logger.info "Adding snapshot #{onesnapshot.id} to condemed list"
-          condemned_snaps.push onesnapshot.id
+          condemned_snaps.push onesnapshot
         end
       end
 
       unless condemned_snaps.empty?
-        deregister_images condemned_snaps
+        deregister_images condemned_snaps.map {|s| s.id }
         delete_snapshots  condemned_snaps
       end
     end
