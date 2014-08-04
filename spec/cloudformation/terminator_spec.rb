@@ -1,6 +1,6 @@
-require 'automat'
+require 'automan'
 
-describe Automat::Cloudformation::Terminator do
+describe Automan::Cloudformation::Terminator do
   it { should respond_to :name }
   it { should respond_to :terminate }
   it { should respond_to :stack_exists? }
@@ -9,7 +9,7 @@ describe Automat::Cloudformation::Terminator do
   describe '#terminate' do
     subject(:t) do
       AWS.stub!
-      t = Automat::Cloudformation::Terminator.new
+      t = Automan::Cloudformation::Terminator.new
       t.logger = Logger.new('/dev/null')
       t
     end

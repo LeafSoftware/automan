@@ -1,6 +1,6 @@
-require "automat"
+require "automan"
 
-describe Automat::Beanstalk::Version do
+describe Automan::Beanstalk::Version do
 
   it { should respond_to :application }
   it { should respond_to :label }
@@ -12,7 +12,7 @@ describe Automat::Beanstalk::Version do
   describe '#exists?' do
     subject(:v) do
       AWS.stub!
-      v = Automat::Beanstalk::Version.new
+      v = Automan::Beanstalk::Version.new
       v.eb = AWS::ElasticBeanstalk::Client.new
       v.application = 'foo'
       v.label = 'v4'
@@ -41,7 +41,7 @@ describe Automat::Beanstalk::Version do
   describe '#delete_by_label' do
     subject(:v) do
       AWS.stub!
-      v = Automat::Beanstalk::Version.new
+      v = Automan::Beanstalk::Version.new
       v.logger = Logger.new('/dev/null')
       v
     end

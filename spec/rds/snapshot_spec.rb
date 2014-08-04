@@ -1,9 +1,9 @@
-require 'automat'
+require 'automan'
 require 'logger'
 
 ENV['MAX_SNAPSHOTS'] = "50"
 
-describe Automat::RDS::Snapshot do
+describe Automan::RDS::Snapshot do
   it { should respond_to :rds }
   it { should respond_to :create }
   it { should respond_to :delete }
@@ -14,7 +14,7 @@ describe Automat::RDS::Snapshot do
   describe '#default_snapshot_name' do
     subject(:s) do
       AWS.stub!
-      s = Automat::RDS::Snapshot.new
+      s = Automan::RDS::Snapshot.new
       s.logger = Logger.new('/dev/null')
       s.stub(:db_environment).and_return('dev1')
       s
@@ -34,7 +34,7 @@ describe Automat::RDS::Snapshot do
   describe '#create' do
     subject(:s) do
       AWS.stub!
-      s = Automat::RDS::Snapshot.new
+      s = Automan::RDS::Snapshot.new
       s.logger = Logger.new('/dev/null')
       s
     end
@@ -43,7 +43,7 @@ describe Automat::RDS::Snapshot do
       s.stub(:find_db).and_return(nil)
       expect {
         s.create
-      }.to raise_error Automat::RDS::DatabaseDoesNotExistError
+      }.to raise_error Automan::RDS::DatabaseDoesNotExistError
     end
 
     it "raises error if RDS says database does not exist" do
@@ -53,7 +53,7 @@ describe Automat::RDS::Snapshot do
 
       expect {
         s.create
-      }.to raise_error Automat::RDS::DatabaseDoesNotExistError
+      }.to raise_error Automan::RDS::DatabaseDoesNotExistError
     end
 
   end

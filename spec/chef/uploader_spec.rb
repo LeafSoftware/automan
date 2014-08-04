@@ -1,6 +1,6 @@
-require "automat"
+require "automan"
 
-describe Automat::Chef::Uploader do
+describe Automan::Chef::Uploader do
   it { should respond_to :repopath }
   it { should respond_to :s3path }
   it { should respond_to :chefver }

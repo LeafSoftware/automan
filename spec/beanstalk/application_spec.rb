@@ -1,6 +1,6 @@
-require "automat"
+require "automan"
 
-describe Automat::Beanstalk::Application do
+describe Automan::Beanstalk::Application do
   it { should respond_to :name }
   it { should respond_to :create }
   it { should respond_to :delete }
@@ -8,7 +8,7 @@ describe Automat::Beanstalk::Application do
   describe '#create' do
     subject(:a) do
       AWS.stub!
-      a = Automat::Beanstalk::Application.new
+      a = Automan::Beanstalk::Application.new
       a.logger = Logger.new('/dev/null')
       a
     end
@@ -29,7 +29,7 @@ describe Automat::Beanstalk::Application do
   describe '#delete' do
     subject(:a) do
       AWS.stub!
-      a = Automat::Beanstalk::Application.new
+      a = Automan::Beanstalk::Application.new
       a.logger = Logger.new('/dev/null')
       a
     end

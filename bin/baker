@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
-require 'automat/cli/baker'
+require 'automan/cli/baker'
 
-Automat::Cli::Baker.start ARGV
+Automan::Cli::Baker.start ARGV

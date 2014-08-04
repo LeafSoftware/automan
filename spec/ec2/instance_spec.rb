@@ -1,6 +1,6 @@
-require "automat"
+require "automan"
 
-describe Automat::Ec2::Instance do
+describe Automan::Ec2::Instance do
 
   it { should respond_to :windows_password }
   it { should respond_to :password_data }
@@ -11,7 +11,7 @@ describe Automat::Ec2::Instance do
   describe '#windows_password' do
     subject(:i) do
       AWS.stub!
-      i = Automat::Ec2::Instance.new
+      i = Automan::Ec2::Instance.new
       i.logger = Logger.new('/dev/null')
       i
     end
@@ -22,7 +22,7 @@ describe Automat::Ec2::Instance do
     end
 
     it "returns nil if the aws request fails" do
-      i.stub(:password_data).and_raise Automat::Ec2::RequestFailedError
+      i.stub(:password_data).and_raise Automan::Ec2::RequestFailedError
       i.windows_password('foo','bar').should be_nil
     end
 
@@ -36,7 +36,7 @@ describe Automat::Ec2::Instance do
   describe '#windows_name' do
     subject(:i) do
       AWS.stub!
-      i = Automat::Ec2::Instance.new
+      i = Automan::Ec2::Instance.new
       i.logger = Logger.new('/dev/null')
       i
     end

@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
-require 'automat/cli/mover'
+require 'automan/cli/mover'
 
-Automat::Cli::Mover.start ARGV
+Automan::Cli::Mover.start ARGV

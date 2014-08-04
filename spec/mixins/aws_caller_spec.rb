@@ -1,7 +1,7 @@
-require 'automat/mixins/aws_caller'
+require 'automan/mixins/aws_caller'
 
-describe Automat::Mixins::AwsCaller do
-  let(:s) { (Class.new { include Automat::Mixins::AwsCaller }).new }
+describe Automan::Mixins::AwsCaller do
+  let(:s) { (Class.new { include Automan::Mixins::AwsCaller }).new }
 
   services = [
     :s3, :cfn, :as, :eb, :r53, :elb, :rds, :ec2

@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
-require 'automat/cli/scanner'
+require 'automan/cli/scanner'
 
-Automat::Cli::Scanner.start ARGV
+Automan::Cli::Scanner.start ARGV

@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
-require 'automat/cli/stacker'
+require 'automan/cli/stacker'
 
-Automat::Cli::Stacker.start ARGV
+Automan::Cli::Stacker.start ARGV

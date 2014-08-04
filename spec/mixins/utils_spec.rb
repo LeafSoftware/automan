@@ -1,7 +1,7 @@
-require 'automat/mixins/utils'
+require 'automan/mixins/utils'
 
-describe Automat::Mixins::Utils do
-  let(:s) { (Class.new { include Automat::Mixins::Utils }).new }
+describe Automan::Mixins::Utils do
+  let(:s) { (Class.new { include Automan::Mixins::Utils }).new }
 
   it "adds String#underscore" do
     s = String.new

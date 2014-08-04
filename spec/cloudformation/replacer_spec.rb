@@ -1,6 +1,6 @@
-require 'automat'
+require 'automan'
 
-describe Automat::Cloudformation::Replacer do
+describe Automan::Cloudformation::Replacer do
   it { should respond_to :name }
   it { should respond_to :replace_instances }
   it { should respond_to :ok_to_replace_instances? }
@@ -9,7 +9,7 @@ describe Automat::Cloudformation::Replacer do
   describe '#ok_to_replace_instances?' do
     subject(:r) do
       AWS.stub!
-      r = Automat::Cloudformation::Replacer.new
+      r = Automan::Cloudformation::Replacer.new
     end
 
     good_states = %w[UPDATE_COMPLETE]
@@ -45,7 +45,7 @@ describe Automat::Cloudformation::Replacer do
       it "raises error when stack is borked (state: #{state})" do
         expect {
           r.ok_to_replace_instances?(state, Time.now)
-        }.to raise_error Automat::Cloudformation::StackBrokenError
+        }.to raise_error Automan::Cloudformation::StackBrokenError
       end
     end
 

@@ -1,9 +1,9 @@
-require "automat"
+require "automan"
 
-describe Automat::Beanstalk::Configuration do
+describe Automan::Beanstalk::Configuration do
   subject(:c) do
     AWS.stub!
-    c = Automat::Beanstalk::Configuration.new
+    c = Automan::Beanstalk::Configuration.new
     c.logger = Logger.new('/dev/null')
     c
   end

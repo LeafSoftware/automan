@@ -1,6 +1,6 @@
-require "automat"
+require "automan"
 
-describe Automat::Beanstalk::Deployer do
+describe Automan::Beanstalk::Deployer do
 
   it { should respond_to :name }
   it { should respond_to :version_label }
@@ -20,7 +20,7 @@ describe Automat::Beanstalk::Deployer do
   # The name can contain only letters, numbers, and hyphens.
   # It cannot start or end with a hyphen.
   describe '#eb_environment_name' do
-    subject(:bd) { Automat::Beanstalk::Deployer.new }
+    subject(:bd) { Automan::Beanstalk::Deployer.new }
 
     it "is at least 4 characters" do
       bd.name = "a"
@@ -56,7 +56,7 @@ describe Automat::Beanstalk::Deployer do
   describe '#read_manifest' do
     subject(:d) do
       AWS.stub!
-      d = Automat::Beanstalk::Deployer.new
+      d = Automan::Beanstalk::Deployer.new
       d.logger = Logger.new('/dev/null')
       d
     end
@@ -65,7 +65,7 @@ describe Automat::Beanstalk::Deployer do
       d.stub(:manifest_exists?).and_return(false)
       expect {
         d.read_manifest
-      }.to raise_error(Automat::Beanstalk::MissingManifestError)
+      }.to raise_error(Automan::Beanstalk::MissingManifestError)
     end
 
     it 'sets version_label and package properly' do
@@ -80,7 +80,7 @@ describe Automat::Beanstalk::Deployer do
   describe '#deploy' do
     subject(:d) do
       AWS.stub!
-      d = Automat::Beanstalk::Deployer.new
+      d = Automan::Beanstalk::Deployer.new
       d.logger = Logger.new('/dev/null')
       d
     end
@@ -89,7 +89,7 @@ describe Automat::Beanstalk::Deployer do
       d.stub(:package_exists?).and_return(false)
       expect {
         d.deploy
-      }.to raise_error(Automat::Beanstalk::MissingPackageFileError)
+      }.to raise_error(Automan::Beanstalk::MissingPackageFileError)
     end
 
     it 'makes sure the application version and environment exists' do
@@ -103,7 +103,7 @@ describe Automat::Beanstalk::Deployer do
   describe '#ensure_version_exists' do
     subject(:d) do
       AWS.stub!
-      d = Automat::Beanstalk::Deployer.new
+      d = Automan::Beanstalk::Deployer.new
       d.logger = Logger.new('/dev/null')
       d
     end
@@ -128,7 +128,7 @@ describe Automat::Beanstalk::Deployer do
   describe '#create_or_update_environment' do
     subject(:d) do
       AWS.stub!
-      d = Automat::Beanstalk::Deployer.new
+      d = Automan::Beanstalk::Deployer.new
       d.logger = Logger.new('/dev/null')
       d.stub(:ensure_version_exists)
       d
@@ -154,7 +154,7 @@ describe Automat::Beanstalk::Deployer do
       d.stub(:environment_status).and_return('foo')
       expect {
         d.create_or_update_environment
-      }.to raise_error(Automat::Beanstalk::InvalidEnvironmentStatusError)
+      }.to raise_error(Automan::Beanstalk::InvalidEnvironmentStatusError)
     end
   end
 

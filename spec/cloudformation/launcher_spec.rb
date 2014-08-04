@@ -1,6 +1,6 @@
-require 'automat'
+require 'automan'
 
-describe Automat::Cloudformation::Launcher do
+describe Automan::Cloudformation::Launcher do
   it { should respond_to :name }
   it { should respond_to :template }
   it { should respond_to :parameters }
@@ -16,7 +16,7 @@ describe Automat::Cloudformation::Launcher do
   describe '#read_manifest' do
     subject(:s) do
       AWS.stub!
-      s = Automat::Cloudformation::Launcher.new
+      s = Automan::Cloudformation::Launcher.new
       s
     end
 
@@ -24,7 +24,7 @@ describe Automat::Cloudformation::Launcher do
       s.stub(:manifest_exists?).and_return(false)
       expect {
         s.read_manifest
-      }.to raise_error(Automat::Cloudformation::MissingManifestError)
+      }.to raise_error(Automan::Cloudformation::MissingManifestError)
     end
 
     it 'merges manifest contents into parameters hash' do
@@ -39,7 +39,7 @@ describe Automat::Cloudformation::Launcher do
   describe '#parse_template_parameters' do
     subject(:s) do
       AWS.stub!
-      s = Automat::Cloudformation::Launcher.new
+      s = Automan::Cloudformation::Launcher.new
       s.cfn = AWS::CloudFormation.new
       s.cfn.client.stub_for :validate_template
       s
@@ -56,7 +56,7 @@ describe Automat::Cloudformation::Launcher do
   describe '#template_handle' do
     subject(:s) do
       AWS.stub!
-      s = Automat::Cloudformation::Launcher.new
+      s = Automan::Cloudformation::Launcher.new
       s
     end
 
@@ -72,7 +72,7 @@ describe Automat::Cloudformation::Launcher do
   describe '#validate_parameters' do
     subject(:s) do
       AWS.stub!
-      s = Automat::Cloudformation::Launcher.new
+      s = Automan::Cloudformation::Launcher.new
       s.logger = Logger.new('/dev/null')
       s.parameters = {}
       s
@@ -82,25 +82,25 @@ describe Automat::Cloudformation::Launcher do
       s.parameters = nil
       expect {
         s.validate_parameters
-      }.to raise_error Automat::Cloudformation::MissingParametersError
+      }.to raise_error Automan::Cloudformation::MissingParametersError
     end
 
     it "raises error if the template doesn't validate" do
-      Automat::Cloudformation::Launcher.any_instance.stub(:parse_template_parameters).and_return({code: 'foo', message: 'bar'})
+      Automan::Cloudformation::Launcher.any_instance.stub(:parse_template_parameters).and_return({code: 'foo', message: 'bar'})
       expect {
         s.validate_parameters
-      }.to raise_error Automat::Cloudformation::BadTemplateError
+      }.to raise_error Automan::Cloudformation::BadTemplateError
     end
 
     it "raises error if a required parameter isn't present" do
-      Automat::Cloudformation::Launcher.any_instance.stub(:parse_template_parameters).and_return(parameters: [{parameter_key: 'foo'}])
+      Automan::Cloudformation::Launcher.any_instance.stub(:parse_template_parameters).and_return(parameters: [{parameter_key: 'foo'}])
       expect {
         s.validate_parameters
-      }.to raise_error Automat::Cloudformation::MissingParametersError
+      }.to raise_error Automan::Cloudformation::MissingParametersError
     end
 
     it "raises no error if all required parameters are present" do
-      Automat::Cloudformation::Launcher.any_instance.stub(:parse_template_parameters).and_return(parameters: [{parameter_key: 'foo'}])
+      Automan::Cloudformation::Launcher.any_instance.stub(:parse_template_parameters).and_return(parameters: [{parameter_key: 'foo'}])
       s.parameters = {'foo' => 'bar'}
       expect {
         s.validate_parameters
@@ -108,7 +108,7 @@ describe Automat::Cloudformation::Launcher do
     end
 
     it "raises no error if there are no required parameters" do
-      Automat::Cloudformation::Launcher.any_instance.stub(:parse_template_parameters).and_return(parameters: [{parameter_key: 'foo', default_value: 'bar'}])
+      Automan::Cloudformation::Launcher.any_instance.stub(:parse_template_parameters).and_return(parameters: [{parameter_key: 'foo', default_value: 'bar'}])
       expect {
         s.validate_parameters
       }.not_to raise_error
@@ -118,7 +118,7 @@ describe Automat::Cloudformation::Launcher do
   describe '#update' do
     subject(:s) do
       AWS.stub!
-      s = Automat::Cloudformation::Launcher.new
+      s = Automan::Cloudformation::Launcher.new
       s.logger = Logger.new('/dev/null')
       s.stub(:template_handle).and_return('foo')
       s
@@ -142,7 +142,7 @@ describe Automat::Cloudformation::Launcher do
   describe '#launch_or_update' do
     subject(:s) do
       AWS.stub!
-      s = Automat::Cloudformation::Launcher.new
+      s = Automan::Cloudformation::Launcher.new
       s.logger = Logger.new('/dev/null')
       s.stub(:validate_parameters)
       s
@@ -166,7 +166,7 @@ describe Automat::Cloudformation::Launcher do
       s.stub(:enable_update).and_return(false)
       expect {
         s.launch_or_update
-      }.to raise_error Automat::Cloudformation::StackExistsError
+      }.to raise_error Automan::Cloudformation::StackExistsError
     end
   end
 end

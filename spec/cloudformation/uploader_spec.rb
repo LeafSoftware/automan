@@ -1,9 +1,9 @@
-require 'automat'
+require 'automan'
 
-describe Automat::Cloudformation::Uploader do
+describe Automan::Cloudformation::Uploader do
   subject(:u) do
     AWS.stub!
-    u = Automat::Cloudformation::Uploader.new
+    u = Automan::Cloudformation::Uploader.new
     u.logger = Logger.new('/dev/null')
     u.stub(:templates).and_return(%w[a b c])
     u
@@ -19,7 +19,7 @@ describe Automat::Cloudformation::Uploader do
       u.stub(:templates).and_return([])
       expect {
         u.all_templates_valid?
-      }.to raise_error Automat::Cloudformation::NoTemplatesError
+      }.to raise_error Automan::Cloudformation::NoTemplatesError
     end
 
     it 'returns true if templates are valid' do
@@ -38,7 +38,7 @@ describe Automat::Cloudformation::Uploader do
       u.stub(:all_templates_valid?).and_return(false)
       expect {
         u.upload_templates
-      }.to raise_error(Automat::Cloudformation::InvalidTemplateError)
+      }.to raise_error(Automan::Cloudformation::InvalidTemplateError)
     end
 
     it 'uploads files if all are valid' do

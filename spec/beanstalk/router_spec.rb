@@ -1,7 +1,7 @@
-require 'automat'
+require 'automan'
 require 'wait'
 
-describe Automat::Beanstalk::Router do
+describe Automan::Beanstalk::Router do
   it { should respond_to :run }
   it { should respond_to :environment_name }
   it { should respond_to :hosted_zone_name }
@@ -11,7 +11,7 @@ describe Automat::Beanstalk::Router do
     context 'waiting' do
       subject(:r) do
         AWS.stub!
-        r = Automat::Beanstalk::Router.new
+        r = Automan::Beanstalk::Router.new
         r.eb = AWS::ElasticBeanstalk::Client.new
         r.elb = AWS::ELB.new
         r.environment_name = 'foo'

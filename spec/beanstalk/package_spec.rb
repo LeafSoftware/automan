@@ -1,6 +1,6 @@
-require "automat"
+require "automan"
 
-describe Automat::Beanstalk::Package do
+describe Automan::Beanstalk::Package do
   it { should respond_to :upload_package }
   it { should respond_to :source }
   it { should respond_to :destination }

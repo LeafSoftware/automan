@@ -1,6 +1,6 @@
-require 'automat'
+require 'automan'
 
-describe Automat::Beanstalk::Terminator do
+describe Automan::Beanstalk::Terminator do
   it { should respond_to :name }
   it { should respond_to :terminate }
   it { should respond_to :environment_exists? }
@@ -8,7 +8,7 @@ describe Automat::Beanstalk::Terminator do
   describe '#environment_exists?' do
     subject(:t) do
       AWS.stub!
-      t = Automat::Beanstalk::Terminator.new
+      t = Automan::Beanstalk::Terminator.new
       t.logger = Logger.new('/dev/null')
       t
     end
@@ -47,7 +47,7 @@ describe Automat::Beanstalk::Terminator do
   describe '#terminate' do
     subject(:t) do
       AWS.stub!
-      t = Automat::Beanstalk::Terminator.new
+      t = Automan::Beanstalk::Terminator.new
       t.logger = Logger.new('/dev/null')
       t
     end

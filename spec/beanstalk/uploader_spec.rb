@@ -1,9 +1,9 @@
-require 'automat'
+require 'automan'
 
-describe Automat::Beanstalk::Uploader do
+describe Automan::Beanstalk::Uploader do
   subject(:u) do
     AWS.stub!
-    u = Automat::Beanstalk::Uploader.new
+    u = Automan::Beanstalk::Uploader.new
     u.logger = Logger.new('/dev/null')
     u.template_files = 'foo'
     u.stub(:config_templates).and_return(['foo'])
@@ -21,7 +21,7 @@ describe Automat::Beanstalk::Uploader do
       u.stub(:config_templates).and_return([])
       expect {
         u.config_templates_valid?
-      }.to raise_error(Automat::Beanstalk::NoConfigurationTemplatesError)
+      }.to raise_error(Automan::Beanstalk::NoConfigurationTemplatesError)
     end
 
     it 'returns true if config templates are valid json' do
@@ -40,7 +40,7 @@ describe Automat::Beanstalk::Uploader do
       u.stub(:config_templates_valid?).and_return(false)
       expect {
         u.upload_config_templates
-      }.to raise_error(Automat::Beanstalk::InvalidConfigurationTemplateError)
+      }.to raise_error(Automan::Beanstalk::InvalidConfigurationTemplateError)
     end
 
     it 'uploads files if they are valid' do

@@ -1,7 +1,7 @@
-require 'automat'
+require 'automan'
 require 'logger'
 
-describe Automat::Ec2::Image do
+describe Automan::Ec2::Image do
   it { should respond_to :ec2 }
   it { should respond_to :create }
   it { should respond_to :prune }
@@ -14,7 +14,7 @@ describe Automat::Ec2::Image do
   describe '#default_image_name' do
     subject(:s) do
       AWS.stub!
-      s = Automat::Ec2::Image.new
+      s = Automan::Ec2::Image.new
       s.logger = Logger.new('/dev/null')
       s.stub(:name).and_return('skee-lo')
       s
@@ -34,7 +34,7 @@ describe Automat::Ec2::Image do
   describe '#image_snapshot' do
     subject(:s) do
       AWS.stub!
-      s = Automat::Ec2::Image.new
+      s = Automan::Ec2::Image.new
       s.logger = Logger.new('/dev/null')
       s
     end
@@ -67,7 +67,7 @@ describe Automat::Ec2::Image do
   describe '#delete_snapshots' do
     subject(:s) do
       AWS.stub!
-      s = Automat::Ec2::Image.new
+      s = Automan::Ec2::Image.new
       s.logger = Logger.new('/dev/null')
       s
     end
@@ -92,7 +92,7 @@ describe Automat::Ec2::Image do
   describe '#deregister_images' do
     subject(:s) do
       AWS.stub!
-      s = Automat::Ec2::Image.new
+      s = Automan::Ec2::Image.new
       s.logger = Logger.new('/dev/null')
       s.stub(:image_snapshot).and_return('foo')
       s
@@ -136,7 +136,7 @@ describe Automat::Ec2::Image do
   describe '#is_more_than_month_old?' do
     subject(:s) do
       AWS.stub!
-      s = Automat::Ec2::Image.new
+      s = Automan::Ec2::Image.new
       s.logger = Logger.new('/dev/null')
       s
     end
