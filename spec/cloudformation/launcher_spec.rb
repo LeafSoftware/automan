@@ -12,6 +12,9 @@ describe Automan::Cloudformation::Launcher do
   it { should respond_to :launch }
   it { should respond_to :update }
   it { should respond_to :read_manifest }
+  it { should respond_to :wait_for_completion }
+  it { should respond_to :stack_launch_complete? }
+  it { should respond_to :stack_update_complete? }
 
   describe '#read_manifest' do
     subject(:s) do
@@ -167,6 +170,71 @@ describe Automan::Cloudformation::Launcher do
       expect {
         s.launch_or_update
       }.to raise_error Automan::Cloudformation::StackExistsError
+    end
+  end
+
+  describe '#stack_launch_complete?' do
+    subject(:s) do
+      AWS.stub!
+      s = Automan::Cloudformation::Launcher.new
+      s.logger = Logger.new('/dev/null')
+      s
+    end
+
+    it 'returns true when the stack completes' do
+      s.stub(:stack_status).and_return('CREATE_COMPLETE')
+      s.stack_launch_complete?.should be_true
+    end
+
+    it 'raises an error when the stack fails' do
+      s.stub(:stack_status).and_return('CREATE_FAILED')
+      expect {
+        s.stack_launch_complete?
+      }.to raise_error Automan::Cloudformation::StackCreationError
+    end
+
+    rollback_states = %w[ROLLBACK_COMPLETE ROLLBACK_FAILED ROLLBACK_IN_PROGRESS]
+    rollback_states.each do |state|
+      it "raises an error when the stack goes into #{state} state" do
+        s.stub(:stack_status).and_return(state)
+        expect {
+          s.stack_launch_complete?
+        }.to raise_error Automan::Cloudformation::StackCreationError
+      end
+    end
+
+    it 'returns false for any other state' do
+      s.stub(:stack_status).and_return('foo')
+      s.stack_launch_complete?.should be_false
+    end
+  end
+
+  describe '#stack_update_complete?' do
+    subject(:s) do
+      AWS.stub!
+      s = Automan::Cloudformation::Launcher.new
+      s.logger = Logger.new('/dev/null')
+      s
+    end
+
+    it 'returns true when the stack completes' do
+      s.stub(:stack_status).and_return('UPDATE_COMPLETE')
+      s.stack_update_complete?.should be_true
+    end
+
+    rollback_states = %w[UPDATE_ROLLBACK_COMPLETE UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS UPDATE_ROLLBACK_FAILED UPDATE_ROLLBACK_IN_PROGRESS]
+    rollback_states.each do |state|
+      it "raises an error when the stack enters #{state} state" do
+        s.stub(:stack_status).and_return(state)
+        expect {
+          s.stack_update_complete?
+        }.to raise_error Automan::Cloudformation::StackUpdateError
+      end
+    end
+
+    it 'returns false for any other state' do
+      s.stub(:stack_status).and_return('foo')
+      s.stack_update_complete?.should be_false
     end
   end
 end

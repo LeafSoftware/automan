@@ -36,6 +36,13 @@ module Automan::Cli
       aliases: "-p",
       desc: "stack parameters (e.g. -p Environment:dev InstanceType:m1.small)"
 
+    option :wait_for_completion,
+      aliases: "-w",
+      type: :boolean,
+      default: false,
+      desc: "wait until stack launches/updates before exiting script"
+
+
     def launch
       Automan::Cloudformation::Launcher.new(options).launch_or_update
     end
@@ -46,6 +53,12 @@ module Automan::Cli
       required: true,
       aliases: "-n",
       desc: "name of the stack"
+
+    option :wait_for_completion,
+      aliases: "-w",
+      type: :boolean,
+      default: false,
+      desc: "wait until stack terminates before exiting script"
 
     def terminate
       Automan::Cloudformation::Terminator.new(options).terminate

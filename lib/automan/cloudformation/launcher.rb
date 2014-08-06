@@ -11,9 +11,22 @@ module Automan::Cloudformation
                :enable_iam,
                :enable_update,
                :parameters,
-               :manifest
+               :manifest,
+               :wait_for_completion
 
     include Automan::Mixins::Utils
+
+    def initialize(options=nil)
+      @wait_for_completion = false
+      super
+      @wait = Wait.new({
+        delay: 120,
+        attempts: 15, # 15 x 2m == 30m
+        debug: true,
+        rescuer:  WaitRescuer.new(),
+        logger:   @logger
+      })
+    end
 
     def manifest_exists?
       s3_object_exists? manifest
@@ -80,6 +93,32 @@ module Automan::Cloudformation
       cfn.stacks[name].exists?
     end
 
+    def stack_status
+      cfn.stacks[name].status
+    end
+
+    def stack_launch_complete?
+      case stack_status
+      when 'CREATE_COMPLETE'
+        true
+      when 'CREATE_FAILED', /^ROLLBACK_/
+        raise StackCreationError, "Stack #{name} failed to launch"
+      else
+        false
+      end
+    end
+
+    def stack_update_complete?
+      case stack_status
+      when 'UPDATE_COMPLETE'
+        true
+      when 'UPDATE_FAILED', /^UPDATE_ROLLBACK_/
+        raise StackUpdateError, "Stack #{name} failed to update"
+      else
+        false
+      end
+    end
+
     def launch
       opts = {
         parameters: parameters
@@ -89,6 +128,11 @@ module Automan::Cloudformation
 
       logger.info "launching stack #{name}"
       cfn.stacks.create name, template_handle(template), opts
+
+      if wait_for_completion
+        logger.info "waiting for stack #{name} to launch"
+        wait_until { stack_launch_complete? }
+      end
     end
 
     def update_stack(name, opts)
@@ -115,6 +159,12 @@ module Automan::Cloudformation
           logger.info e.message
         end
       end
+
+      if wait_for_completion
+        logger.info "waiting for stack #{name} to update"
+        wait_until { stack_update_complete? }
+      end
+
     end
 
     def launch_or_update

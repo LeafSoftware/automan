@@ -14,6 +14,15 @@ module Automan::Cloudformation
   class StackBrokenError < StandardError
   end
 
+  class StackDeletionError < StandardError
+  end
+
+  class StackCreationError < StandardError
+  end
+
+  class StackUpdateError < StandardError
+  end
+
   class WaitTimedOutError < StandardError
   end
 
