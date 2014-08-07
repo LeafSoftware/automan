@@ -29,6 +29,8 @@ module Automan::Cloudformation
     end
 
     def stack_deleted?(stack_name)
+      return true if !stack_exists?(stack_name)
+
       case stack_status(stack_name)
       when 'DELETE_COMPLETE'
         true

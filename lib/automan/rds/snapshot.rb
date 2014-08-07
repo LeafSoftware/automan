@@ -25,7 +25,7 @@ module Automan::RDS
       })
 
       if ENV['MAX_SNAPSHOTS'].nil?
-        raise ParameterError, "MAX_SNAPSHOTS environment variable not defined"
+        @max_snapshots = 50
       else
         @max_snapshots = ENV['MAX_SNAPSHOTS'].to_i
       end

@@ -37,6 +37,12 @@ describe Automan::Cloudformation::Terminator do
       t
     end
 
+    it 'returns true if the stack does not exist' do
+      t.stub(:stack_exists?).and_return(false)
+      t.stub(:stack_status).and_raise StandardError
+      t.stack_deleted?('foo').should be_true
+    end
+
     it 'returns true when status is DELETE_COMPLETE' do
       t.stub(:stack_status).and_return('DELETE_COMPLETE')
       t.stack_deleted?('foo').should be_true
