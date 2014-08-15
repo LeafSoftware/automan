@@ -18,7 +18,6 @@ module Automan::Cli
 
     def show_instances
       i = Automan::Ec2::Instance.new(options)
-      i.logger = Logger.new('/dev/null')
       i.show_env
     end
   end
