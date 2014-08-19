@@ -38,8 +38,9 @@ module Automan::Cli
       end
 
       s = Automan::RDS::Snapshot.new(options)
-      s.create
+      s.log_aws_calls = true
       s.prune_snapshots if options[:prune]
+      s.create
     end
 
     desc "delete", "delete a snapshot"

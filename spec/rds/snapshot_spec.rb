@@ -57,4 +57,96 @@ describe Automan::RDS::Snapshot do
     end
 
   end
+
+  describe '#tagged_can_prune?' do
+    subject(:s) do
+      AWS.stub!
+      s = Automan::RDS::Snapshot.new
+      s.logger = Logger.new('/dev/null')
+      s.stub(:snapshot_arn)
+      s
+    end
+
+    it 'returns true if snapshot is tagged with CanPrune=yes' do
+      s.stub(:tags).and_return( {'CanPrune' => 'yes'} )
+      s.tagged_can_prune?( double() ).should be_true
+    end
+
+    it 'returns false if snapshot is missing CanPrune tag' do
+      s.stub(:tags).and_return( {} )
+      s.tagged_can_prune?( double() ).should be_false
+    end
+
+    it 'returns false if snapshot is tagged with CanPrune=nil' do
+      s.stub(:tags).and_return( {'CanPrune' => nil} )
+      s.tagged_can_prune?( double() ).should be_false
+    end
+
+    it 'returns false if snapshot is tagged with CanPrune=foo' do
+      s.stub(:tags).and_return( {'CanPrune' => 'foo'} )
+      s.tagged_can_prune?( double() ).should be_false
+    end
+  end
+
+  describe '#available?' do
+    subject(:s) do
+      AWS.stub!
+      s = Automan::RDS::Snapshot.new
+      s.logger = Logger.new('/dev/null')
+      s
+    end
+
+    it 'returns true if status is "available"' do
+      snap = double(:snap)
+      snap.stub(:status).and_return('available')
+      s.available?(snap).should be_true
+    end
+
+    it 'returns false if status is foo' do
+      snap = double(:snap)
+      snap.stub(:status).and_return('foo')
+      s.available?(snap).should be_false
+    end
+  end
+
+  describe '#manual?' do
+    let(:snap) { double }
+    subject(:s) do
+      AWS.stub!
+      s = Automan::RDS::Snapshot.new
+      s.logger = Logger.new('/dev/null')
+      s
+    end
+
+    it 'returns true if type is "manual"' do
+      snap.stub(:snapshot_type).and_return('manual')
+      s.manual?(snap).should be_true
+    end
+
+    it 'returns false if type is foo' do
+      snap.stub(:snapshot_type).and_return('foo')
+      s.manual?(snap).should be_false
+    end
+  end
+
+  describe '#prunable_snapshots' do
+    let(:snap) { double }
+    subject(:s) do
+      AWS.stub!
+      s = Automan::RDS::Snapshot.new
+      s.logger = Logger.new('/dev/null')
+      s.stub(:get_all_snapshots).and_return( [ snap ] )
+      s
+    end
+
+    it 'includes snapshots which can be pruned' do
+      s.stub(:can_prune?).and_return(true)
+      s.prunable_snapshots.should include(snap)
+    end
+
+    it 'excludes snapshots which should not be pruned' do
+      s.stub(:can_prune?).and_return(false)
+      s.prunable_snapshots.should_not include(snap)
+    end
+  end
 end

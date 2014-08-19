@@ -81,7 +81,10 @@ module Automan::RDS
 
       if snapshot_count >= max_snapshots
         logger.info "Too many snapshots (>= #{max_snapshots}), deleting oldest prunable."
-        old = oldest_prunable_snapshot
+        old = nil
+        AWS.memoize do
+          old = oldest_prunable_snapshot
+        end
         logger.info "Deleting #{old.id}"
         old.delete
       end
@@ -178,13 +181,21 @@ module Automan::RDS
       result
     end
 
-    def can_prune?(snapshot_name)
-      arn = snapshot_arn(snapshot_name)
-      tags(arn)['CanPrune'] == 'yes'
+    def can_prune?(snapshot)
+      tagged_can_prune?(snapshot) && available?(snapshot) && manual?(snapshot)
     end
 
-    def is_manual?(snapshot)
-      return snapshot.snapshot_type == 'manual'
+    def tagged_can_prune?(snapshot)
+      arn = snapshot_arn(snapshot)
+      tags(arn)['CanPrune']  == 'yes'
+    end
+
+    def available?(snapshot)
+      snapshot.status == 'available'
+    end
+
+    def manual?(snapshot)
+      snapshot.snapshot_type == 'manual'
     end
 
     # older than a month?
@@ -192,31 +203,32 @@ module Automan::RDS
       time.utc < (Time.now.utc - 60*60*24*30)
     end
 
+    def get_all_snapshots
+      rds.db_snapshots
+    end
+
+    def prunable_snapshots
+      snapshots = get_all_snapshots
+      snapshots.select { |s| can_prune?(s) }
+    end
+
     def oldest_prunable_snapshot
-      snapshots=rds.db_snapshots
-      prunablesnaps=[]
-      snapshots.each do |s|
-        if can_prune?(s) && is_manual?(s)
-          prunablesnaps.push(s)
-        end
-      end
-      prunablesnaps.sort_by { |s| s.created_at }.first
+      prunable_snapshots.sort_by { |s| s.created_at }.first
     end
 
     def prune_snapshots
       logger.info "Pruning old db snapshots"
 
-      snapshots = rds.db_instances[database].snapshots
-      snapshots.each do |snapshot|
+      AWS.memoize do
+        prunable_snapshots.each do |snapshot|
 
-        next unless snapshot.status == 'available'
+          timestamp = snapshot.created_at
+          snapshot_name = snapshot.db_snapshot_identifier
 
-        timestamp = snapshot.created_at
-        snapshot_name = snapshot.db_snapshot_identifier
-
-        if too_old?(timestamp) && can_prune?(snapshot_name)
-          logger.info "Deleting #{snapshot_name} because it is too old."
-          snapshot.delete
+          if too_old?(timestamp)
+            logger.info "Deleting #{snapshot_name} because it is too old."
+            snapshot.delete
+          end
         end
       end
     end

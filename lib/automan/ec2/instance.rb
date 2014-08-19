@@ -69,6 +69,8 @@ module Automan::Ec2
         data << tokens
       end
 
+      return if data.empty?
+
       # find longest name tag
       max_name_size = data.max_by {|i| i[0].size }.first.size
       data.map {|i| i[0] = i[0].ljust(max_name_size) }
