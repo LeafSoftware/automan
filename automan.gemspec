@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec-core", "~> 2.12.2"
   spec.add_development_dependency "rspec-mocks", "~> 2.12.2"
   spec.add_development_dependency "rspec-expectations", "~> 2.12.1"
-  spec.add_dependency "aws-sdk"
+  spec.add_dependency "aws-sdk", "< 2.0"
   spec.add_dependency "thor"
   spec.add_dependency "json"
   spec.add_dependency "wait"
