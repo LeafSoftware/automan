@@ -6,10 +6,10 @@ require 'automan/version'
 Gem::Specification.new do |spec|
   spec.name          = "automan"
   spec.version       = Automan::VERSION
-  spec.authors       = ["Chris Chalfant"]
-  spec.email         = ["cchalfant@leafsoftwaresolutions.com"]
-  spec.description   = %q{Automanes common AWS ops}
-  spec.summary       = %q{Automanes common AWS ops}
+  spec.authors       = ["Chris Chalfant", "Andrew Kaczorek"]
+  spec.email         = ["cchalfant@leafsoftwaresolutions.com", "akaczorek@leafsoftwaresolutions.com"]
+  spec.description   = %q{Automates common AWS ops}
+  spec.summary       = %q{Automates common AWS ops}
   spec.homepage      = ""
 
   spec.files         = `git ls-files`.split($/)
