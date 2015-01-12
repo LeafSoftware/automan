@@ -12,11 +12,9 @@ module Automan
 
     include Automan::Mixins::AwsCaller
 
-    def initialize(options=nil)
+    def initialize(options={})
       $stdout.sync = true
       @logger = Logger.new(STDOUT)
-      @log_aws_calls = false
-      #@wait = Wait.new(rescuer: WaitRescuer.new, logger: @logger)
 
       if !options.nil?
         options.each_pair do |k,v|
@@ -24,6 +22,12 @@ module Automan
           send(accessor, v) if respond_to? accessor
         end
       end
+
+      aws_options = {}
+      if options[:log_aws]
+        aws_options[:logger] = @logger
+      end
+      configure_aws(aws_options)
     end
 
     def self.add_option(*args)

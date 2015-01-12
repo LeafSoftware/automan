@@ -16,7 +16,6 @@ describe Automan::Beanstalk::Version do
       v.eb = AWS::ElasticBeanstalk::Client.new
       v.application = 'foo'
       v.label = 'v4'
-      v.log_aws_calls = false
       v.logger = Logger.new('/dev/null')
       v
     end

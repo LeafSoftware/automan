@@ -4,7 +4,7 @@ module Automan::Cloudformation
   class Terminator < Automan::Base
     add_option :name, :wait_for_completion
 
-    def initialize(options=nil)
+    def initialize(options={})
       @wait_for_completion = false
       super
       @wait = Wait.new({

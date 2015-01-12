@@ -10,7 +10,7 @@ module Automan::Beanstalk
 
     attr_accessor :attempts_made
 
-    def initialize(options=nil)
+    def initialize(options={})
       super
       @wait = Wait.new({
         attempts: 10,

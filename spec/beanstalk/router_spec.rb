@@ -17,7 +17,6 @@ describe Automan::Beanstalk::Router do
         r.environment_name = 'foo'
         r.hosted_zone_name = 'foo.com'
         r.hostname         = 'www.foo.com'
-        r.log_aws_calls = false
         r.logger = Logger.new('/dev/null')
         r.wait = Wait.new(delay: 0.01, rescuer: WaitRescuer.new(AWS::Route53::Errors::InvalidChangeBatch))
         r

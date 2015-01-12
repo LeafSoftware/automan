@@ -16,7 +16,7 @@ module Automan::Cloudformation
 
     include Automan::Mixins::Utils
 
-    def initialize(options=nil)
+    def initialize(options={})
       @wait_for_completion = false
       super
       @wait = Wait.new({

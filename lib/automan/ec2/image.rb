@@ -7,7 +7,7 @@ module Automan::Ec2
 
     include Automan::Mixins::Utils
 
-    def initialize(options=nil)
+    def initialize(options={})
       super
       @wait = Wait.new({
         delay: 5,

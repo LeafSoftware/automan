@@ -12,7 +12,7 @@ module Automan::RDS
 
     attr_accessor :max_snapshots
 
-    def initialize(options=nil)
+    def initialize(options={})
       @prune = true
       @wait_for_completion = false
       super

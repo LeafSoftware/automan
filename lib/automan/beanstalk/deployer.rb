@@ -18,7 +18,7 @@ module Automan::Beanstalk
 
     include Automan::Mixins::Utils
 
-    def initialize(options=nil)
+    def initialize(options={})
       @number_to_keep = 0
       super
     end

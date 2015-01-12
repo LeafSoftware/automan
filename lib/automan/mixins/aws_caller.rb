@@ -8,14 +8,20 @@ module Automan
         ENV['AWS_ACCOUNT_ID']
       end
 
-      attr_reader :log_aws_calls
-      def log_aws_calls=(value)
-        if value == true
-          AWS.config(logger: @logger)
-        else
-          AWS.config(logger: nil)
+      def configure_aws(options={})
+        if ENV['AWS_ROLE']
+          sts = AWS::STS.new
+
+          @logger.info "Assuming role #{ENV['AWS_ROLE']}"
+          provider = AWS::Core::CredentialProviders::AssumeRoleProvider.new(
+            sts: sts,
+            role_arn: ENV['AWS_ROLE'],
+            role_session_name: "automan-aws-sdk"
+          )
+          options[:credential_provider] = provider
         end
-        @log_aws_calls = value
+
+        AWS.config(options)
       end
 
       attr_writer :eb

@@ -5,7 +5,7 @@ module Automan::Cloudformation
   class Replacer < Automan::Base
     add_option :name
 
-    def initialize(options=nil)
+    def initialize(options={})
       super
       @wait = Wait.new({
         delay: 60,
