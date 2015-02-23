@@ -37,8 +37,9 @@ module Automan::Cli
         exit 1
       end
 
-      options[:log_aws] = true
-      s = Automan::RDS::Snapshot.new(options)
+      aws_opts = options.dup
+      aws_opts[:log_aws] = true
+      s = Automan::RDS::Snapshot.new(aws_opts)
       s.prune_snapshots if options[:prune]
       s.create
     end
