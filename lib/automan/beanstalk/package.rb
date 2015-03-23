@@ -13,7 +13,7 @@ module Automan::Beanstalk
 
       # verify local package exists
       unless File.exists? source
-        raise MissingPackageFile, "package file #{source} does not exist"
+        raise MissingPackageFileError, "package file #{source} does not exist"
       end
 
       logger.info "Uploading #{source} to #{destination}"

@@ -9,7 +9,7 @@ module Automan::S3
     def download
       log_options
 
-      logger.info "uploading #{localfile} to #{s3file}"
+      logger.info "downloading #{s3file} to #{localfile}"
 
       bucket, key = parse_s3_path s3file
 
@@ -18,7 +18,16 @@ module Automan::S3
           file.write(chunk)
         end
       end
+    end
 
+    def read
+      log_options
+
+      logger.info "returning contents of #{s3file} as string"
+
+      bucket, key = parse_s3_path s3file
+
+      s3.buckets[bucket].objects[key].read
     end
 
   end
