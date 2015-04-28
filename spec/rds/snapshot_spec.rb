@@ -24,9 +24,9 @@ describe Automan::RDS::Snapshot do
       s.default_snapshot_name('somedb').should_not be_nil
     end
 
-    it "returns environment dash iso8601 string" do
+    it "returns environment dash time string" do
       name = s.default_snapshot_name('somedb')
-      name.should match /^dev1-(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})[+-](\d{2})-(\d{2})/
+      name.should match /^dev1-(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})/
     end
 
   end
