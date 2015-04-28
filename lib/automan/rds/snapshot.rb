@@ -120,7 +120,7 @@ module Automan::RDS
 
     def default_snapshot_name(db)
       env   = db_environment db
-      stime = Time.new.iso8601.gsub(/:/,'-')
+      stime = Time.new.strftime("%Y-%m-%dT%H-%M")
 
       return env + "-" + stime
     end
