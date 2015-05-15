@@ -239,6 +239,7 @@ module Automan::RDS
       logger.info "Finding most recent snapshot for #{db.id}"
       s = db.snapshots.sort_by {|i| i.created_at }.last
       logger.info "Most recent snapshot is #{s.id}"
+      s.id
     end
   end
 end
