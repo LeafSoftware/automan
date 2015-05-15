@@ -93,8 +93,8 @@ module Automan::RDS
       snap = db.create_snapshot(myname)
 
       if prune == true
-        logger.info "Setting snapshot to be prunable"
-        set_prunable(snap)
+        logger.info "Setting snapshot to be prunable and tagging environment"
+        set_prunable_and_env(snap,environment)
       end
 
       if wait_for_completion == true
@@ -145,10 +145,10 @@ module Automan::RDS
     end
 
     # tag with CanPrune
-    def set_prunable(snapshot)
+    def set_prunable_and_env(snapshot,environment)
       opts = {
         resource_name: snapshot_arn(snapshot),
-        tags: [ {key: 'CanPrune', value: 'yes'} ]
+        tags: [ {key: 'CanPrune', value: 'yes'}, {key: 'Environment', value: environment} ]
       }
       response = rds.client.add_tags_to_resource opts
 
@@ -183,6 +183,15 @@ module Automan::RDS
 
     def can_prune?(snapshot)
       tagged_can_prune?(snapshot) && available?(snapshot) && manual?(snapshot)
+    end
+
+    def is_env?(snapshot,environment)
+      tagged_env?(snapshot,environment) && available?(snapshot) && manual?(snapshot)
+    end
+
+    def tagged_env?(snapshot,environment)
+      arn = snapshot_arn(snapshot)
+      tags(arn)['Environment']  == environment
     end
 
     def tagged_can_prune?(snapshot)
@@ -235,9 +244,18 @@ module Automan::RDS
 
     def latest
       log_options
-      db = find_db
-      logger.info "Finding most recent snapshot for #{db.id}"
-      s = db.snapshots.sort_by {|i| i.created_at }.last
+      logger.info "Finding most recent snapshot for #{environment}"
+
+      allsnaps=get_all_snapshots
+
+      envsnaps=[]
+      allsnaps.each do |onesnap|
+        if is_env?(onesnap,environment)
+          envsnaps.push(onesnap)
+        end
+      end
+
+      s=envsnaps.sort_by {|i| i.created_at }.last
       logger.info "Most recent snapshot is #{s.id}"
       s.id
     end
