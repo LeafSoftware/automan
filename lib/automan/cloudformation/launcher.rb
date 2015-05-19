@@ -157,10 +157,11 @@ module Automan::Cloudformation
           raise e
         else
           logger.info e.message
+          no_updates_needed = true
         end
       end
 
-      if wait_for_completion
+      if !no_updates_needed && wait_for_completion
         logger.info "waiting for stack #{name} to update"
         wait_until { stack_update_complete? }
       end
