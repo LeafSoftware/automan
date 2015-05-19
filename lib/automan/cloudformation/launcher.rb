@@ -148,6 +148,8 @@ module Automan::Cloudformation
 
       logger.info "updating stack #{name}"
 
+      no_updates_needed = false
+
       # if cfn determines that no updates are to be performed,
       # it raises a ValidationError
       begin
