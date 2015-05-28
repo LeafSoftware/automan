@@ -1,0 +1,57 @@
+#!/usr/bin/env ruby
+require 'bundler/setup'
+require 'cloudformation-ruby-dsl/cfntemplate'
+require 'json'
+
+t = template do
+  ## CloudFormation template stuff goes here
+  ## See https://github.com/bazaarvoice/cloudformation-ruby-dsl
+  ##
+  ## Here's an example.
+  ##
+  # parameter 'VpcId',
+  #   Description: 'The VPC in which to launch',
+  #   Type: 'String'
+
+  # parameter 'SubnetId',
+  #   Description: 'The Subnet in which to launch the instances',
+  #   Type: 'String'
+
+  # parameter 'RemoteAccessSG',
+  #   Description: 'The security group allowing remote access',
+  #   Type: 'String'
+
+  # parameter 'KeyPairName',
+  #   Description: 'Public/private key pairs allow you to securely connect to your instance after it launches',
+  #   Type: 'String'
+
+  # parameter 'InstanceType',
+  #   Description: 'EC2 instance type for training machines',
+  #   Type: 'String',
+  #   Default: 't2.small'
+
+  # parameter 'ImageId',
+  #   Description: 'Amazon Machine Image Id of pre-baked training machine',
+  #   Type: 'String'
+
+  # resource "MyInstance", Type: 'AWS::EC2::Instance',
+  #   Properties: {
+  #     ImageId: ref('ImageId'),
+  #     InstanceType: ref('InstanceType'),
+  #     NetworkInterfaces: [{
+  #       AssociatePublicIpAddress: 'true',
+  #       DeviceIndex: '0',
+  #       DeleteOnTermination: 'true',
+  #       SubnetId: ref('SubnetId'),
+  #       GroupSet: [
+  #         ref('RemoteAccessSG')
+  #       ]
+  #     }],
+  #     Tags: [
+  #       { Key: 'Name', Value: "MyInstance" }
+  #     ],
+  #     KeyName: ref('KeyPairName')
+  #   }
+end
+
+puts JSON.pretty_generate(t)

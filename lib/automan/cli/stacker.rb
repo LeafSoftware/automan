@@ -102,5 +102,24 @@ module Automan::Cli
       h = Automan::Cloudformation::Launcher.new(options).parse_template_parameters
       say JSON.pretty_generate h
     end
+
+    include Thor::Actions
+    def self.source_root
+      File.join(File.dirname(__FILE__),'..','..', '..')
+    end
+
+    desc "project APP_NAME", "create stacker project"
+
+    attr_reader :app_name
+
+    def project(app_name)
+      @app_name = app_name
+
+      say "\nCreating stacker project: #{app_name}\n", :yellow
+      directory 'templates/stacker', app_name
+      [app_name, "launch_#{app_name}.sh"].each do |file|
+        chmod File.join(app_name, 'bin', file), 0755
+      end
+    end
   end
 end
