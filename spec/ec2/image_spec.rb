@@ -26,7 +26,7 @@ describe Automan::Ec2::Image do
 
     it "returns name dash iso8601 string" do
       name = s.default_image_name()
-      name.should match /^skee-lo-(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})[+-](\d{2})-(\d{2})/
+      name.should match /^skee-lo-(\d{4})-(\d{2})-(\d{2})T(\d{2})(\d{2})(\d{2})Z/
     end
 
   end
