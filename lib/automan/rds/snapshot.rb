@@ -33,6 +33,8 @@ module Automan::RDS
 
     include Automan::Mixins::Utils
 
+    # TODO move this and dependecies to an RDS utils class
+    # so we can re-use it
     def find_db
       db = nil
       if !database.nil?
