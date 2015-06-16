@@ -21,19 +21,19 @@ describe Automan::Beanstalk::Version do
     end
 
     it "is true when version exists in response" do
-      resp = v.eb.stub_for :describe_application_versions
+      resp = subject.eb.stub_for :describe_application_versions
       resp.data[:application_versions] = [
-        {application_name: v.application, version_label: v.label}
+        {application_name: subject.application, version_label: subject.label}
       ]
-      v.exists?.should be_true
+      expect(subject.exists?).to be_truthy
     end
 
     it "is false when version is not in response" do
-      resp = v.eb.stub_for :describe_application_versions
+      resp = subject.eb.stub_for :describe_application_versions
       resp.data[:application_versions] = [
         {application_name: '', version_label: ''}
       ]
-      v.exists?.should be_false
+      expect(subject.exists?).to be_falsey
     end
   end
 
@@ -46,11 +46,10 @@ describe Automan::Beanstalk::Version do
     end
 
     it 'ignores AWS::ElasticBeanstalk::Errors::SourceBundleDeletionFailure' do
-      eb = double(:eb)
-      eb.stub(:delete_application_version).and_raise(AWS::ElasticBeanstalk::Errors::SourceBundleDeletionFailure)
-      v.eb = eb
+      subject.eb = double()
+      allow(subject.eb).to receive(:delete_application_version).and_raise(AWS::ElasticBeanstalk::Errors::SourceBundleDeletionFailure)
       expect {
-        v.delete_by_label('foo')
+        subject.delete_by_label('foo')
       }.not_to raise_error
     end
 

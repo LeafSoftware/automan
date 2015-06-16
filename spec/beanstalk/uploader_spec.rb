@@ -6,7 +6,7 @@ describe Automan::Beanstalk::Uploader do
     u = Automan::Beanstalk::Uploader.new
     u.logger = Logger.new('/dev/null')
     u.template_files = 'foo'
-    u.stub(:config_templates).and_return(['foo'])
+    allow(u).to receive(:config_templates).and_return(['foo'])
     u
   end
 
@@ -18,36 +18,36 @@ describe Automan::Beanstalk::Uploader do
   describe '#config_templates_valid?' do
 
     it 'raises error if config templates do not exist' do
-      u.stub(:config_templates).and_return([])
+      allow(subject).to receive(:config_templates).and_return([])
       expect {
-        u.config_templates_valid?
+        subject.config_templates_valid?
       }.to raise_error(Automan::Beanstalk::NoConfigurationTemplatesError)
     end
 
     it 'returns true if config templates are valid json' do
-      u.stub(:read_config_template).and_return('[{}]')
-      u.config_templates_valid?.should be_true
+      allow(subject).to receive(:read_config_template).and_return('[{}]')
+      expect(subject.config_templates_valid?).to be_truthy
     end
 
     it 'returns false if config templates are invalid json' do
-      u.stub(:read_config_template).and_return('@#$%#')
-      u.config_templates_valid?.should be_false
+      allow(subject).to receive(:read_config_template).and_return('@#$%#')
+      expect(subject.config_templates_valid?).to be_falsey
     end
   end
 
   describe '#upload_config_templates' do
     it 'raises error if any config template fails validation' do
-      u.stub(:config_templates_valid?).and_return(false)
+      allow(subject).to receive(:config_templates_valid?).and_return(false)
       expect {
-        u.upload_config_templates
+        subject.upload_config_templates
       }.to raise_error(Automan::Beanstalk::InvalidConfigurationTemplateError)
     end
 
     it 'uploads files if they are valid' do
-      u.stub(:config_templates).and_return(%w[a b c])
-      u.stub(:config_templates_valid?).and_return(true)
-      u.should_receive(:upload_file).exactly(3).times
-      u.upload_config_templates
+      allow(subject).to receive(:config_templates).and_return(%w[a b c])
+      allow(subject).to receive(:config_templates_valid?).and_return(true)
+      expect(subject).to receive(:upload_file).exactly(3).times
+      subject.upload_config_templates
     end
   end
 end

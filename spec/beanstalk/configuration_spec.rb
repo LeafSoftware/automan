@@ -23,10 +23,10 @@ describe Automan::Beanstalk::Configuration do
   describe '#config_template_exists?' do
 
     it 'returns false if raises InvalidParameterValue with missing config template message' do
-      c.eb = double(:eb)
       error = AWS::ElasticBeanstalk::Errors::InvalidParameterValue.new('No Configuration Template named')
-      c.eb.stub(:describe_configuration_settings).and_raise(error)
-      c.config_template_exists?.should be_false
+      subject.eb = double()
+      allow(subject.eb).to receive(:describe_configuration_settings).and_raise(error)
+      expect(subject.config_template_exists?).to be_falsey
     end
   end
 
@@ -48,51 +48,51 @@ describe Automan::Beanstalk::Configuration do
         }
       ]
 
-      c.fix_config_keys(config_before).should eq(config_after)
+      expect(subject.fix_config_keys(config_before)).to eq(config_after)
     end
   end
 
   describe '#create' do
     it 'does not create if configuration exists' do
-      c.stub(:config_template_exists?).and_return(true)
-      c.should_not_receive(:create_config_template)
-      c.create
+      allow(subject).to receive(:config_template_exists?).and_return(true)
+      expect(subject).to_not receive(:create_config_template)
+      subject.create
     end
 
     it 'does create if configuration does not exist' do
-      c.stub(:config_template_exists?).and_return(false)
-      c.should_receive(:create_config_template)
-      c.create
+      allow(subject).to receive(:config_template_exists?).and_return(false)
+      expect(subject).to receive(:create_config_template)
+      subject.create
     end
   end
 
   describe '#delete' do
     it 'does delete if configuration exists' do
-      c.stub(:config_template_exists?).and_return(true)
-      c.should_receive(:delete_config_template)
-      c.delete
+      allow(subject).to receive(:config_template_exists?).and_return(true)
+      expect(subject).to receive(:delete_config_template)
+      subject.delete
     end
 
     it 'does not delete if configuration does not exist' do
-      c.stub(:config_template_exists?).and_return(false)
-      c.should_not_receive(:delete_config_template)
-      c.delete
+      allow(subject).to receive(:config_template_exists?).and_return(false)
+      expect(subject).to_not receive(:delete_config_template)
+      subject.delete
     end
   end
 
   describe '#update' do
     it 'deletes configuration and recreates it if it exists' do
-      c.stub(:config_template_exists?).and_return(true)
-      c.should_receive(:delete_config_template)
-      c.should_receive(:create_config_template)
-      c.update
+      allow(subject).to receive(:config_template_exists?).and_return(true)
+      expect(subject).to receive(:delete_config_template)
+      expect(subject).to receive(:create_config_template)
+      subject.update
     end
 
     it 'does not try to delete configuration if it does not exist' do
-      c.stub(:config_template_exists?).and_return(false)
-      c.should_not_receive(:delete_config_template)
-      c.should_receive(:create_config_template)
-      c.update
+      allow(subject).to receive(:config_template_exists?).and_return(false)
+      expect(subject).to_not receive(:delete_config_template)
+      expect(subject).to receive(:create_config_template)
+      subject.update
     end
   end
 end

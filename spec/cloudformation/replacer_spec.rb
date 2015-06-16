@@ -1,15 +1,15 @@
 require 'automan'
 
 describe Automan::Cloudformation::Replacer do
-  it { should respond_to :name }
-  it { should respond_to :replace_instances }
-  it { should respond_to :ok_to_replace_instances? }
-  it { should respond_to :stack_exists? }
+  it { is_expected.to respond_to :name }
+  it { is_expected.to respond_to :replace_instances }
+  it { is_expected.to respond_to :ok_to_replace_instances? }
+  it { is_expected.to respond_to :stack_exists? }
 
   describe '#ok_to_replace_instances?' do
-    subject(:r) do
+    subject() do
       AWS.stub!
-      r = Automan::Cloudformation::Replacer.new
+      Automan::Cloudformation::Replacer.new
     end
 
     good_states = %w[UPDATE_COMPLETE]
@@ -30,28 +30,28 @@ describe Automan::Cloudformation::Replacer do
 
     good_states.each do |state|
       it "returns true when stack is in the right state (state: #{state})" do
-        r.ok_to_replace_instances?(state, Time.now).should be_true
+        expect(subject.ok_to_replace_instances?(state, Time.now)).to be_truthy
       end
     end
 
     good_states.each do |state|
       it "returns false when stack is in the right state but has not been updated in the last 5m" do
         last_updated = Time.now - (5 * 60 + 1)
-        r.ok_to_replace_instances?(state, last_updated).should be_false
+        expect(subject.ok_to_replace_instances?(state, last_updated)).to be_falsey
       end
     end
 
     bad_states.each do |state|
       it "raises error when stack is borked (state: #{state})" do
         expect {
-          r.ok_to_replace_instances?(state, Time.now)
+          subject.ok_to_replace_instances?(state, Time.now)
         }.to raise_error Automan::Cloudformation::StackBrokenError
       end
     end
 
     wait_states.each do |state|
       it "returns false when it is not yet ok to replace (state: #{state})" do
-        r.ok_to_replace_instances?(state, Time.now).should be_false
+        expect(subject.ok_to_replace_instances?(state, Time.now)).to be_falsey
       end
     end
   end

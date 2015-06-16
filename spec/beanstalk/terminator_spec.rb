@@ -14,33 +14,33 @@ describe Automan::Beanstalk::Terminator do
     end
 
     it "returns false if environment does not exist" do
-      resp = t.eb.stub_for :describe_environments
+      resp = subject.eb.stub_for :describe_environments
       resp.data[:environments] = [{}]
-      t.environment_exists?('foo').should be_false
+      expect(subject.environment_exists?('foo')).to be_falsey
     end
 
     it "returns false if environment is in Terminated state" do
-      resp = t.eb.stub_for :describe_environments
+      resp = subject.eb.stub_for :describe_environments
       resp.data[:environments] = [{environment_name: 'foo', status: 'Terminated'}]
-      t.environment_exists?('foo').should be_false
+      expect(subject.environment_exists?('foo')).to be_falsey
     end
 
     it "returns false if environment is in Terminating state" do
-      resp = t.eb.stub_for :describe_environments
+      resp = subject.eb.stub_for :describe_environments
       resp.data[:environments] = [{environment_name: 'foo', status: 'Terminating'}]
-      t.environment_exists?('foo').should be_false
+      expect(subject.environment_exists?('foo')).to be_falsey
     end
 
     it "returns true if environment does exist" do
-      resp = t.eb.stub_for :describe_environments
+      resp = subject.eb.stub_for :describe_environments
       resp.data[:environments] = [{environment_name: 'foo'}]
-      t.environment_exists?('foo').should be_true
+      expect(subject.environment_exists?('foo')).to be_truthy
     end
 
     it "returns true if environment is in Ready state" do
-      resp = t.eb.stub_for :describe_environments
+      resp = subject.eb.stub_for :describe_environments
       resp.data[:environments] = [{environment_name: 'foo', status: 'Ready'}]
-      t.environment_exists?('foo').should be_true
+      expect(subject.environment_exists?('foo')).to be_truthy
     end
   end
 
@@ -53,15 +53,15 @@ describe Automan::Beanstalk::Terminator do
     end
 
     it 'should call #terminate_environment if the environment exists' do
-      t.stub(:environment_exists?).and_return(true)
-      t.should_receive :terminate_environment
-      t.terminate
+      allow(subject).to receive(:environment_exists?).and_return(true)
+      expect(subject).to receive :terminate_environment
+      subject.terminate
     end
 
     it 'should not call #terminate_environment if the environment does not exist' do
-      t.stub(:environment_exists?).and_return(false)
-      t.should_not_receive :terminate_environment
-      t.terminate
+      allow(subject).to receive(:environment_exists?).and_return(false)
+      expect(subject).to_not receive :terminate_environment
+      subject.terminate
     end
   end
 end

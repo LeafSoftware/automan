@@ -2,14 +2,14 @@ require 'automan'
 require 'wait'
 
 describe Automan::Beanstalk::Router do
-  it { should respond_to :run }
-  it { should respond_to :environment_name }
-  it { should respond_to :hosted_zone_name }
-  it { should respond_to :hostname }
+  it { is_expected.to respond_to :run }
+  it { is_expected.to respond_to :environment_name }
+  it { is_expected.to respond_to :hosted_zone_name }
+  it { is_expected.to respond_to :hostname }
 
   describe '#run' do
     context 'waiting' do
-      subject(:r) do
+      subject() do
         AWS.stub!
         r = Automan::Beanstalk::Router.new
         r.eb = AWS::ElasticBeanstalk::Client.new
@@ -23,41 +23,41 @@ describe Automan::Beanstalk::Router do
       end
 
       it "raises error if it never finds a name" do
-        r.stub(:elb_cname_from_beanstalk_environment).and_return(nil)
+        allow(subject).to receive(:elb_cname_from_beanstalk_environment).and_return(nil)
         expect {
-          r.run
+          subject.run
         }.to raise_error Wait::ResultInvalid
       end
 
       it "calls #update_dns_alias if it finds a name" do
-        r.stub(:elb_cname_from_beanstalk_environment).and_return('foo')
-        r.should_receive(:update_dns_alias)
-        r.run
+        allow(subject).to receive(:elb_cname_from_beanstalk_environment).and_return('foo')
+        expect(subject).to receive(:update_dns_alias)
+        subject.run
       end
 
       it "ignores InvalidChangeBatch until last attempt" do
-        r.stub(:elb_cname_from_beanstalk_environment).and_return('foo')
-        r.stub(:update_dns_alias).and_raise AWS::Route53::Errors::InvalidChangeBatch
+        allow(subject).to receive(:elb_cname_from_beanstalk_environment).and_return('foo')
+        allow(subject).to receive(:update_dns_alias).and_raise AWS::Route53::Errors::InvalidChangeBatch
         expect {
-          r.run
+          subject.run
         }.to raise_error AWS::Route53::Errors::InvalidChangeBatch
-        r.attempts_made.should eq 5
+        expect(subject.attempts_made).to eq 5
       end
 
       it "ignores InvalidChangeBatch until it succeeds" do
-        r.stub(:elb_cname_from_beanstalk_environment).and_return('foo')
+        allow(subject).to receive(:elb_cname_from_beanstalk_environment).and_return('foo')
 
         @attempts = 0
-        r.stub(:update_dns_alias) do
+        allow(subject).to receive(:update_dns_alias) do
           @attempts += 1
           raise AWS::Route53::Errors::InvalidChangeBatch if @attempts < 3
         end
 
         expect {
-          r.run
+          subject.run
         }.not_to raise_error
 
-        r.attempts_made.should eq 3
+        expect(subject.attempts_made).to eq 3
       end
     end
   end

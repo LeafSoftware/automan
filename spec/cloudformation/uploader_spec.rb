@@ -1,11 +1,11 @@
 require 'automan'
 
 describe Automan::Cloudformation::Uploader do
-  subject(:u) do
+  subject() do
     AWS.stub!
     u = Automan::Cloudformation::Uploader.new
     u.logger = Logger.new('/dev/null')
-    u.stub(:templates).and_return(%w[a b c])
+    allow(u).to receive(:templates).and_return(%w[a b c])
     u
   end
 
@@ -16,35 +16,35 @@ describe Automan::Cloudformation::Uploader do
 
   describe '#all_templates_valid?' do
     it "raises error if there are no templates" do
-      u.stub(:templates).and_return([])
+      allow(subject).to receive(:templates).and_return([])
       expect {
-        u.all_templates_valid?
+        subject.all_templates_valid?
       }.to raise_error Automan::Cloudformation::NoTemplatesError
     end
 
     it 'returns true if templates are valid' do
-      u.should_receive(:template_valid?).exactly(3).times.and_return(true)
-      u.all_templates_valid?.should be_true
+      expect(subject).to receive(:template_valid?).exactly(3).times.and_return(true)
+      expect(subject.all_templates_valid?).to be_truthy
     end
 
     it 'returns false if any templates are invalid' do
-      u.stub(:template_valid?).and_return(false)
-      u.all_templates_valid?.should be_false
+      allow(subject).to receive(:template_valid?).and_return(false)
+      expect(subject.all_templates_valid?).to be_falsey
     end
   end
 
   describe '#upload_templates' do
     it 'raises error if any template fails validation' do
-      u.stub(:all_templates_valid?).and_return(false)
+      allow(subject).to receive(:all_templates_valid?).and_return(false)
       expect {
-        u.upload_templates
+        subject.upload_templates
       }.to raise_error(Automan::Cloudformation::InvalidTemplateError)
     end
 
     it 'uploads files if all are valid' do
-      u.stub(:all_templates_valid?).and_return(true)
-      u.should_receive(:upload_file).exactly(3).times
-      u.upload_templates
+      allow(subject).to receive(:all_templates_valid?).and_return(true)
+      expect(subject).to receive(:upload_file).exactly(3).times
+      subject.upload_templates
     end
   end
 end
