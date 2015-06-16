@@ -1,3 +1,4 @@
+require 'aws-sdk-v1'
 require 'aws-sdk'
 
 module Automan
@@ -9,19 +10,16 @@ module Automan
       end
 
       def configure_aws(options={})
-        if ENV['AWS_ROLE']
-          sts = AWS::STS.new
-
-          @logger.info "Assuming role #{ENV['AWS_ROLE']}"
-          provider = AWS::Core::CredentialProviders::AssumeRoleProvider.new(
-            sts: sts,
-            role_arn: ENV['AWS_ROLE'],
-            role_session_name: "automan-aws-sdk"
-          )
-          options[:credential_provider] = provider
+        # TODO: default region to us-east-1
+        unless options.has_key? :region
+          if ENV['AWS_REGION']
+            options[:region] = ENV['AWS_REGION']
+          else
+            options[:region] = 'us-east-1'
+          end
         end
-
         AWS.config(options)
+        Aws.config.update options # v2
       end
 
       attr_writer :eb
@@ -88,6 +86,7 @@ module Automan
       def cfn
         if @cfn.nil?
           @cfn = AWS::CloudFormation.new
+          # @cfn = Aws::CloudFormation::Resource.new
         end
         @cfn
       end
