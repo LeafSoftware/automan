@@ -1,5 +1,6 @@
 require 'automan'
 require 'json'
+require 'pp'
 
 module Automan::Cli
   class Stacker < Base
@@ -44,7 +45,7 @@ module Automan::Cli
 
 
     def launch
-      Automan::Cloudformation::Launcher.new(options).launch_or_update
+      Automan::Cloudformation::Launcher.new(options).run
     end
 
     desc "terminate", "terminate stack"
@@ -61,18 +62,7 @@ module Automan::Cli
       desc: "wait until stack terminates before exiting script"
 
     def terminate
-      Automan::Cloudformation::Terminator.new(options).terminate
-    end
-
-    desc "replace-instances", "terminate and replace running asg instances"
-
-    option :name,
-      required: true,
-      aliases: "-n",
-      desc: "name of the stack"
-
-    def replace_instances
-      Automan::Cloudformation::Replacer.new(options).replace_instances
+      Automan::Cloudformation::Terminator.new(options).run
     end
 
     desc "upload-templates", "validate and upload cloudformation templates"
@@ -93,14 +83,14 @@ module Automan::Cli
 
     desc "params", "print output from validate_template"
 
-    option :template,
+    option :template_path,
       required: true,
       aliases: "-t",
       desc: "path to template file (s3://bucket/template or local file)"
 
     def params
-      h = Automan::Cloudformation::Launcher.new(options).parse_template_parameters
-      say JSON.pretty_generate h
+      resp = Automan::Cloudformation::Template.new(options).validation_response
+      say resp.pretty_inspect
     end
 
     include Thor::Actions

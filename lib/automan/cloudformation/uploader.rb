@@ -4,36 +4,11 @@ module Automan::Cloudformation
   class Uploader < Automan::Base
     add_option :template_files, :s3_path
 
-    def templates
+    def glob_templates
       Dir.glob(template_files)
     end
 
-    def template_valid?(template)
-      contents = File.read template
-      response = cfn.validate_template(contents)
-      if response.has_key?(:code)
-        logger.warn "#{template} is invalid: #{response[:message]}"
-        return false
-      else
-        return true
-      end
-    end
-
-    def all_templates_valid?
-      if templates.empty?
-        raise NoTemplatesError, "No stack templates found for #{template_files}"
-      end
-
-      valid = true
-      templates.each do |template|
-        unless template_valid?(template)
-          valid = false
-        end
-      end
-      valid
-    end
-
-    def upload_file(file)
+    def upload(file)
       opts = {
         localfile: file,
         s3file:    "#{s3_path}/#{File.basename(file)}"
@@ -45,12 +20,16 @@ module Automan::Cloudformation
     def upload_templates
       log_options
 
-      unless all_templates_valid?
-        raise InvalidTemplateError, "There are invalid templates. Halting upload."
+      glob_templates.each do |file|
+        template = Template.new(template_path: file)
+
+        unless template.valid?
+          raise InvalidTemplateError, "There are invalid templates. Halting upload."
+        end
       end
 
-      templates.each do |template|
-        upload_file(template)
+      glob_templates.each do |file|
+        upload file
       end
     end
   end
