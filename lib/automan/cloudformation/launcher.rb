@@ -47,114 +47,56 @@ module Automan::Cloudformation
       parameters.merge!(data)
     end
 
-    def template_handle(template_path)
-      if looks_like_s3_path? template_path
-        bucket, key = parse_s3_path template_path
-        return s3.buckets[bucket].objects[key]
-      else
-        return File.read(template_path)
-      end
-    end
-
-    def parse_template_parameters
-      cfn.validate_template( template_handle(template) )
-    end
-
-    def validate_parameters
+    def validate_parameters(stack_template)
       if parameters.nil?
         raise MissingParametersError, "there are no parameters!"
       end
 
-      template_params_hash = parse_template_parameters
-
-      if template_params_hash.has_key? :code
-        mesg = template_params_hash[:message]
-        raise BadTemplateError, "template did not validate: #{mesg}"
+      unless stack_template.valid?
+        raise BadTemplateError, "template did not validate"
       end
 
       # make sure any template parameters w/o a default are specified
-      template_params = template_params_hash[:parameters]
-      required_params = template_params.select { |x| !x.has_key? :default_value}
-      required_params.each do |rp|
-        unless parameters.has_key? rp[:parameter_key]
-          raise MissingParametersError, "required parameter #{rp[:parameter_key]} was not specified"
+      stack_template.required_parameters.each do |rp|
+        unless parameters.has_key? rp.parameter_key
+          raise MissingParametersError, "required parameter #{rp.parameter_key} was not specified"
         end
       end
 
       # add iam capabilities if needed
-      if template_params_hash.has_key?(:capabilities) &&
-        template_params_hash[:capabilities].include?('CAPABILITY_IAM')
-        self.enable_iam = true
-      end
-
+      self.enable_iam = true if stack_template.capabilities.include?('CAPABILITY_IAM')
     end
 
-    def stack_exists?
-      cfn.stacks[name].exists?
-    end
-
-    def stack_status
-      cfn.stacks[name].status
-    end
-
-    def stack_launch_complete?
-      case stack_status
-      when 'CREATE_COMPLETE'
-        true
-      when 'CREATE_FAILED', /^ROLLBACK_/
-        raise StackCreationError, "Stack #{name} failed to launch"
-      else
-        false
-      end
-    end
-
-    def stack_update_complete?
-      case stack_status
-      when 'UPDATE_COMPLETE'
-        true
-      when 'UPDATE_FAILED', /^UPDATE_ROLLBACK_/
-        raise StackUpdateError, "Stack #{name} failed to update"
-      else
-        false
-      end
-    end
-
-    def launch
-      opts = {
-        parameters: parameters
-      }
-      opts[:capabilities] = ['CAPABILITY_IAM'] if enable_iam
-      opts[:disable_rollback] = disable_rollback
-
+    def launch(stack, template_body)
       logger.info "launching stack #{name}"
-      cfn.stacks.create name, template_handle(template), opts
+
+      stack.launch({
+        template_body:    template_body,
+        parameters:       parameters,
+        capabilities:     enable_iam ? ['CAPABILITY_IAM'] : [],
+        disable_rollback: disable_rollback
+      })
+      # cfn.stacks.create name, template_handle(template), opts
 
       if wait_for_completion
         logger.info "waiting for stack #{name} to launch"
-        wait_until { stack_launch_complete? }
+        wait_until { stack.launch_complete? }
       end
     end
 
-    def update_stack(name, opts)
-      cfn.stacks[name].update( opts )
-    end
-
-    def update
-      opts = {
-        template: template_handle(template),
-        parameters: parameters
-      }
-      opts[:capabilities] = ['CAPABILITY_IAM'] if enable_iam
-
+    def update(stack, template_body)
       logger.info "updating stack #{name}"
-
       no_updates_needed = false
 
-      # if cfn determines that no updates are to be performed,
+      # If cfn determines that no updates are to be performed,
       # it raises a ValidationError
       begin
-        update_stack(name, opts)
-      rescue AWS::CloudFormation::Errors::ValidationError => e
+        stack.update({
+          template:     template_body,
+          parameters:   parameters,
+          capabilities: enable_iam ? ['CAPABILITY_IAM'] : [],
+        })
+      rescue Aws::CloudFormation::Errors::ValidationError => e
         if e.message != "No updates are to be performed."
           raise e
         else
@@ -165,32 +107,36 @@ module Automan::Cloudformation
 
       if !no_updates_needed && wait_for_completion
         logger.info "waiting for stack #{name} to update"
-        wait_until { stack_update_complete? }
+        wait_until { stack.update_complete? }
       end
 
     end
 
-    def launch_or_update
+    def run
+      stack = Stack.new(name: name)
+      stack_template = Template.new(template_path: template)
+      launch_or_update(stack, stack_template)
+    end
 
-      if !manifest.nil?
-        read_manifest
-      end
+    def launch_or_update(stack, stack_template)
+
+      read_manifest if manifest
 
       log_options
 
-      validate_parameters
+      validate_parameters(stack_template)
 
-      if stack_exists?
-
+      if stack.exists?
         logger.info "stack #{name} exists"
+
         if enable_update == true
-          update
+          update(stack, stack_template.template_contents)
         else
           raise StackExistsError, "stack #{name} already exists"
         end
 
       else
-        launch
+        launch(stack, stack_template.template_contents)
       end
 
     end

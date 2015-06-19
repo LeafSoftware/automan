@@ -16,46 +16,26 @@ module Automan::Cloudformation
       })
     end
 
-    def stack_exists?(stack_name)
-      cfn.stacks[stack_name].exists?
-    end
-
-    def delete_stack(stack_name)
-      cfn.stacks[stack_name].delete
-    end
-
-    def stack_status(stack_name)
-      cfn.stacks[stack_name].status
-    end
-
-    def stack_deleted?(stack_name)
-      return true if !stack_exists?(stack_name)
-
-      case stack_status(stack_name)
-      when 'DELETE_COMPLETE'
-        true
-      when 'DELETE_FAILED'
-        raise StackDeletionError, "#{stack_name} failed to delete"
-      else
-        false
-      end
-    end
-
-    def terminate
+    def terminate(stack)
       log_options
 
-      if !stack_exists? name
-        logger.warn "Stack #{name} does not exist. Doing nothing."
+      unless stack.exists?
+        logger.warn "Stack #{stack.name} does not exist. Doing nothing."
         return
       end
 
-      logger.info "terminating stack #{name}"
-      delete_stack name
+      logger.info "terminating stack #{stack.name}"
+      stack.delete
 
       if wait_for_completion
-        logger.info "waiting for stack #{name} to be deleted"
-        wait_until { stack_deleted? name }
+        logger.info "waiting for stack #{stack.name} to be deleted"
+        wait_until { stack.delete_complete? }
       end
+    end
+
+    def run
+      stack = Stack.new(name: name)
+      terminate(stack)
     end
   end
 end
