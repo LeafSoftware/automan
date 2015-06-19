@@ -85,7 +85,6 @@ module Automan
       attr_writer :cfn
       def cfn
         if @cfn.nil?
-          #@cfn = AWS::CloudFormation.new
           @cfn = Aws::CloudFormation::Resource.new
         end
         @cfn
