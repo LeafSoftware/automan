@@ -92,9 +92,9 @@ module Automan::Cloudformation
       # it raises a ValidationError
       begin
         stack.update({
-          template:     template_body,
-          parameters:   parameters,
-          capabilities: enable_iam ? ['CAPABILITY_IAM'] : [],
+          template_body: template_body,
+          parameters:    parameters,
+          capabilities:  enable_iam ? ['CAPABILITY_IAM'] : [],
         })
       rescue Aws::CloudFormation::Errors::ValidationError => e
         if e.message != "No updates are to be performed."

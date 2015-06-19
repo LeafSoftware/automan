@@ -60,7 +60,7 @@ module Automan::Cloudformation
     def update(options)
       stack = cfn.stack(name)
       stack.update({
-        template_body: options[:template],
+        template_body: options[:template_body],
         parameters:    convert_parameters(options[:parameters]),
         capabilities:  options[:capabilities]
       })
@@ -77,7 +77,7 @@ module Automan::Cloudformation
     def launch(options)
       cfn.create_stack({
         stack_name:       name,
-        template_body:    options[:template],
+        template_body:    options[:template_body],
         parameters:       convert_parameters(options[:parameters]),
         disable_rollback: options[:disable_rollback],
         capabilities:     options[:capabilities]
