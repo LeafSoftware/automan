@@ -3,14 +3,14 @@ require 'automan'
 module Automan::ElastiCache
   class Router < Automan::Base
 
-    add_option :environment_name,
+    add_option :environment,
     :hosted_zone_name,
     :redis_host
 
-    def node_name_from_elasticache_environment(env_name)
+    def node_name_from_elasticache_environment(env)
 
       opts = {
-        cache_cluster_id: "redis-#{env_name}",
+        cache_cluster_id: "redis-#{env}",
         show_cache_node_info: true
       }
 
@@ -66,7 +66,7 @@ module Automan::ElastiCache
       log_options
 
       logger.info "getting redis primary node name..."
-      primary_endpoint = node_name_from_elasticache_environment environment_name
+      primary_endpoint = node_name_from_elasticache_environment environment
 
       if primary_endpoint.nil?
         false
