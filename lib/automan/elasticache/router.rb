@@ -35,6 +35,7 @@ module Automan::ElastiCache
         return nil
       end
 
+      logger.info "found redis endpoint at #{endpoint[:address]}"
       endpoint[:address]
     end
 
@@ -44,13 +45,8 @@ module Automan::ElastiCache
       rrset = zone.rrsets[redis_cname + '.', 'CNAME']
 
       if rrset.exists?
-        if rrset.alias_target[:dns_name] == primary_endpoint + '.'
-          logger.info "record exists: #{redis_cname} -> #{rrset.alias_target[:dns_name]}"
-          return
-        else
-          logger.info "removing old record #{redis_cname} -> #{rrset.alias_target[:dns_name]}"
-          rrset.delete
-        end
+        logger.info "removing old record at #{redis_cname}"
+        rrset.delete
       end
 
       logger.info "creating record #{redis_cname} -> #{primary_endpoint}"
