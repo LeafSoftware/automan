@@ -108,6 +108,14 @@ module Automan
         @rds
       end
 
+      attr_writer :ec
+      def ec
+        if @ec.nil?
+          @ec = AWS::ElastiCache.new
+        end
+        @ec
+      end
+
       attr_writer :ec2
       def ec2
         if @ec2.nil?
