@@ -41,7 +41,7 @@ module Automan::ElastiCache
     # be sure alias_name ends in period
     def update_dns_alias(zone_name, redis_cname, primary_endpoint)
       zone = r53.hosted_zones.select {|z| z.name == zone_name}.first
-      rrset = zone.rrsets[redis_cname + '.', 'C']
+      rrset = zone.rrsets[redis_cname + '.', 'CNAME']
 
       if rrset.exists?
         if rrset.alias_target[:dns_name] == primary_endpoint + '.'
@@ -55,8 +55,8 @@ module Automan::ElastiCache
 
       logger.info "creating record #{redis_cname} -> #{primary_endpoint}"
       zone.rrsets.create(
-        redis_cname,
-        'C',
+        redis_cname + '.',
+        'CNAME',
         :ttl => 300,
         :resource_records => [{:value => primary_endpoint}]
         )
