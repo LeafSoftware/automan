@@ -9,6 +9,11 @@ t = template do
   ##
   ## Here's an example.
   ##
+
+  # value AWSTemplateFormatVersion: '2010-09-09'
+
+  # value Description: 'Creates resources for my stack'
+
   # parameter 'VpcId',
   #   Description: 'The VPC in which to launch',
   #   Type: 'String'
