@@ -1,4 +1,4 @@
-require 'automan'
+require 'spec_helper'
 
 describe Automan::Cloudformation::Launcher do
   it { should respond_to :name }
@@ -14,11 +14,6 @@ describe Automan::Cloudformation::Launcher do
   it { should respond_to :wait_for_completion }
 
   describe '#read_manifest' do
-    subject() do
-      AWS.stub!
-      Automan::Cloudformation::Launcher.new
-    end
-
     it 'raises MissingManifestError if manifest does not exist' do
       allow(subject).to receive(:manifest_exists?).and_return(false)
       expect {
@@ -36,12 +31,8 @@ describe Automan::Cloudformation::Launcher do
   end
 
   describe '#validate_parameters' do
-    subject() do
-      AWS.stub!
-      s = Automan::Cloudformation::Launcher.new
-      s.logger = Logger.new('/dev/null')
-      s.parameters = {}
-      s
+    before(:each) do
+      subject.parameters = {}
     end
 
     let(:template) do
@@ -88,13 +79,6 @@ describe Automan::Cloudformation::Launcher do
   end
 
   describe '#update' do
-    subject() do
-      AWS.stub!
-      s = Automan::Cloudformation::Launcher.new
-      s.logger = Logger.new('/dev/null')
-      s
-    end
-
     let(:stack) { double() }
 
     it "ignores Aws::CloudFormation::Errors::ValidationError when no updates are to be performed" do
@@ -113,12 +97,8 @@ describe Automan::Cloudformation::Launcher do
   end
 
   describe '#launch_or_update' do
-    subject() do
-      AWS.stub!
-      s = Automan::Cloudformation::Launcher.new
-      s.logger = Logger.new('/dev/null')
-      allow(s).to receive(:validate_parameters)
-      s
+    before(:each) do
+      allow(subject).to receive(:validate_parameters)
     end
 
     let(:stack)    { double(exists?: true) }

@@ -1,4 +1,4 @@
-require 'automan'
+require 'spec_helper'
 
 describe Automan::Cloudformation::Terminator do
   it { is_expected.to respond_to :name }
@@ -6,13 +6,6 @@ describe Automan::Cloudformation::Terminator do
   it { is_expected.to respond_to :wait_for_completion }
 
   describe '#terminate' do
-    subject() do
-      AWS.stub!
-      t = Automan::Cloudformation::Terminator.new
-      t.logger = Logger.new('/dev/null')
-      t
-    end
-
     it 'should call stack.delete if the stack exists' do
       stack = double(exists?: true, name: 'foo')
       expect(stack).to receive :delete

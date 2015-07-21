@@ -1,13 +1,6 @@
-require 'automan'
+require 'spec_helper'
 
 describe Automan::Cloudformation::Stack do
-  subject() do
-    AWS.stub!
-    s = Automan::Cloudformation::Stack.new
-    s.logger = Logger.new('/dev/null')
-    s
-  end
-
   it { is_expected.to respond_to :exists? }
   it { is_expected.to respond_to :status }
   it { is_expected.to respond_to :launch_complete? }
