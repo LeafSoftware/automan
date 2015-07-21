@@ -1,4 +1,4 @@
-require 'automan'
+require 'spec_helper'
 
 describe Automan::Cloudformation::Template do
   it { is_expected.to respond_to :template_contents }

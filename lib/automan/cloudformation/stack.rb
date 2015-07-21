@@ -2,10 +2,6 @@ require 'automan'
 
 module Automan::Cloudformation
   class Stack < Automan::Base
-    def initialize(options={})
-      super
-      @cfn = Aws::CloudFormation::Resource.new
-    end
 
     add_option :name
 

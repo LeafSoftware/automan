@@ -1,12 +1,8 @@
-require 'automan'
+require 'spec_helper'
 
 describe Automan::Cloudformation::Uploader do
-  subject() do
-    AWS.stub!
-    u = Automan::Cloudformation::Uploader.new
-    u.logger = Logger.new('/dev/null')
-    allow(u).to receive(:glob_templates).and_return(%w[a b c])
-    u
+  before(:each) do
+    allow(subject).to receive(:glob_templates).and_return(%w[a b c])
   end
 
   it { should respond_to :template_files }
