@@ -4,11 +4,6 @@ module Automan::Cloudformation
   class Template < Automan::Base
     include Automan::Mixins::Utils
 
-    def initialize(options={})
-      super
-      @cfn = Aws::CloudFormation::Client.new
-    end
-
     add_option :template_path # either s3:// or local file
 
     # given template_path returns contents
