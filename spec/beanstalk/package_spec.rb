@@ -1,4 +1,4 @@
-require "automan"
+require "spec_helper"
 
 describe Automan::Beanstalk::Package do
   it { should respond_to :upload_package }

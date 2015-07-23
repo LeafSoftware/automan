@@ -1,13 +1,9 @@
-require 'automan'
+require 'spec_helper'
 
 describe Automan::Beanstalk::Uploader do
-  subject(:u) do
-    AWS.stub!
-    u = Automan::Beanstalk::Uploader.new
-    u.logger = Logger.new('/dev/null')
-    u.template_files = 'foo'
-    allow(u).to receive(:config_templates).and_return(['foo'])
-    u
+  before(:each) do
+    subject.template_files = 'foo'
+    allow(subject).to receive(:config_templates).and_return(['foo'])
   end
 
   it { should respond_to :template_files }

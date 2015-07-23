@@ -25,7 +25,7 @@ module Automan
       attr_writer :eb
       def eb
         if @eb.nil?
-          @eb = AWS::ElasticBeanstalk.new.client
+          @eb = Aws::ElasticBeanstalk::Client.new
         end
         @eb
       end

@@ -1,4 +1,4 @@
-require "automan"
+require 'spec_helper'
 
 describe Automan::Beanstalk::Deployer do
 
@@ -20,8 +20,6 @@ describe Automan::Beanstalk::Deployer do
   # The name can contain only letters, numbers, and hyphens.
   # It cannot start or end with a hyphen.
   describe '#eb_environment_name' do
-    subject() { Automan::Beanstalk::Deployer.new }
-
     it "is at least 4 characters" do
       subject.name = "a"
       subject.environment = "a"
@@ -54,13 +52,6 @@ describe Automan::Beanstalk::Deployer do
   end
 
   describe '#read_manifest' do
-    subject() do
-      AWS.stub!
-      d = Automan::Beanstalk::Deployer.new
-      d.logger = Logger.new('/dev/null')
-      d
-    end
-
     it 'raises MissingManifestError if the manifest is missing' do
       expect(subject).to receive(:manifest_exists?).and_return(false)
       expect {
@@ -78,13 +69,6 @@ describe Automan::Beanstalk::Deployer do
   end
 
   describe '#deploy' do
-    subject() do
-      AWS.stub!
-      d = Automan::Beanstalk::Deployer.new
-      d.logger = Logger.new('/dev/null')
-      d
-    end
-
     it 'raises MissingPackageError if the package does not exist' do
       allow(subject).to receive(:package_exists?).and_return(false)
       expect {
@@ -101,37 +85,26 @@ describe Automan::Beanstalk::Deployer do
   end
 
   describe '#ensure_version_exists' do
-    subject() do
-      AWS.stub!
-      d = Automan::Beanstalk::Deployer.new
-      d.logger = Logger.new('/dev/null')
-      d
-    end
-
     it 'creates version if it does not exist' do
-      version = double()
-      allow(version).to receive(:exists?).and_return(false)
-      expect(version).to receive(:create)
-      allow(subject).to receive(:get_version).and_return(version)
+      app = double()
+      allow(app).to receive(:version_exists?).and_return(false)
+      expect(app).to receive(:create_version)
+      allow(subject).to receive(:app).and_return(app)
       subject.ensure_version_exists
     end
 
     it 'does not create version if it exists' do
-      version = double()
-      allow(version).to receive(:exists?).and_return(true)
-      expect(version).to_not receive(:create)
-      allow(subject).to receive(:get_version).and_return(version)
+      app = double()
+      allow(app).to receive(:version_exists?).and_return(true)
+      expect(app).to_not receive(:create_version)
+      allow(subject).to receive(:app).and_return(app)
       subject.ensure_version_exists
     end
   end
 
   describe '#create_or_update_environment' do
-    subject() do
-      AWS.stub!
-      d = Automan::Beanstalk::Deployer.new
-      d.logger = Logger.new('/dev/null')
-      allow(d).to receive(:ensure_version_exists)
-      d
+    before(:each) do
+      allow(subject).to receive(:ensure_version_exists)
     end
 
     [nil, 'Terminated'].each do |state|

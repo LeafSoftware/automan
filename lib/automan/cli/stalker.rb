@@ -93,7 +93,14 @@ module Automan::Cli
       desc: "name of the application"
 
     def create_app
-      Automan::Beanstalk::Application.new(options).create
+      log_options
+
+      app = Automan::Beanstalk::Application.new(options)
+      if app.exists?
+        logger.warn "Application #{name} already exists. Doing nothing."
+        return
+      end
+      app.create
     end
 
     desc "delete-app", "delete beanstalk application"
@@ -104,7 +111,14 @@ module Automan::Cli
       desc: "name of the application"
 
     def delete_app
-      Automan::Beanstalk::Application.new(options).delete
+      log_options
+
+      app = Automan::Beanstalk::Application.new(options)
+      unless app.exists?
+        logger.warn "Application #{name} does not exist. Doing nothing."
+        return
+      end
+      app.delete
     end
 
     desc "create-config", "create beanstalk configuration template"
@@ -206,7 +220,10 @@ module Automan::Cli
       desc: "version label to be deleted"
 
     def delete_version
-      Automan::Beanstalk::Version.new(options).delete
+      log_options
+
+      app = Automan::Beanstalk::Application.new(name: options[:application])
+      app.delete_version options[:label]
     end
 
     desc "cull-versions", "delete oldest versions, keeping N newest"
@@ -223,7 +240,10 @@ module Automan::Cli
       desc: "keep newest NUMBER_TO_KEEP versions"
 
     def cull_versions
-      Automan::Beanstalk::Version.new(options).cull_versions(options[:number_to_keep])
+      log_options
+
+      app = Automan::Beanstalk::Application.new(name: options[:application])
+      app.cull_versions(options[:number_to_keep])
     end
 
     desc "show-versions", "show all versions for an application"
@@ -234,12 +254,14 @@ module Automan::Cli
       desc: "name of the application"
 
     def show_versions
-      versions = Automan::Beanstalk::Version.new(options).versions
-      versions.each do |v|
+      log_options
+
+      app = Automan::Beanstalk::Application.new(name: options[:application])
+      app.versions.each do |v|
         tokens = [
-          v[:application_name],
-          v[:version_label],
-          v[:date_created].iso8601
+          v.application_name,
+          v.version_label,
+          v.date_created.iso8601
         ]
         say tokens.join("\t")
       end

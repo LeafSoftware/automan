@@ -37,11 +37,10 @@ module Automan::Beanstalk
     end
 
     def upload_file(file)
-      opts = {
+      s = Automan::S3::Uploader.new({
         localfile: file,
         s3file:    "#{s3_path}/#{File.basename(file)}"
-      }
-      s = Automan::S3::Uploader.new opts
+      })
       s.upload
     end
 
