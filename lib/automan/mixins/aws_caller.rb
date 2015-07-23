@@ -109,7 +109,7 @@ module Automan
       attr_writer :ec
       def ec
         if @ec.nil?
-          @ec = AWS::ElastiCache.new
+          @ec = Aws::ElastiCache::Client.new
         end
         @ec
       end

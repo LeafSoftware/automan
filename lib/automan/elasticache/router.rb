@@ -1,42 +1,43 @@
 require 'automan'
 
+# TODO: this has too many assumptions about customer env
+
 module Automan::ElastiCache
   class Router < Automan::Base
 
     add_option :environment,
-    :hosted_zone_name,
-    :redis_host
+      :hosted_zone_name,
+      :redis_host
 
     def node_name_from_elasticache_environment(env)
 
-      opts = {
+      response = ec.describe_cache_clusters({
         cache_cluster_id: "redis-#{env}",
         show_cache_node_info: true
-      }
-
-      response = ec.client.describe_cache_clusters opts
+      })
 
       unless response.successful?
         raise RequestFailedError, "describe_cache_clusters failed: #{response.error}"
       end
 
-      cluster=response.data[:cache_clusters]
-      if cluster.empty?
-        return nil
+      return nil if response.cache_clusters.empty?
+
+      # assert only one redis cluster for this env
+      if response.cache_clusters > 1
+        raise TooManyRedisClusters, "Too many redis clusters for env: #{env}"
       end
 
-      nodes=Hash[*cluster][:cache_nodes]
-      if nodes.empty?
-        return nil
+      nodes = response.cache_clusters.first.cache_nodes
+
+      return nil if nodes.empty?
+
+      # assert only one redis node in the cluster
+      if nodes > 1
+        raise TooManyRedisNodes, "Too many redis nodes in cluster for env: #{env}"
       end
 
-      endpoint=Hash[*nodes][:endpoint]
-      if endpoint.empty?
-        return nil
-      end
-
-      logger.info "found redis endpoint at #{endpoint[:address]}"
-      endpoint[:address]
+      logger.info "found redis endpoint at #{node.endpoint.address}"
+      node.endpoint.address
     end
 
     # be sure alias_name ends in period
