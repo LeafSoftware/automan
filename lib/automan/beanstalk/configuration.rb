@@ -11,14 +11,13 @@ module Automan::Beanstalk
     include Automan::Mixins::Utils
 
     def config_template_exists?
-      opts = {
-        application_name: application,
-        template_name:    name
-      }
-
       begin
-        response = eb.describe_configuration_settings opts
-      rescue AWS::ElasticBeanstalk::Errors::InvalidParameterValue => e
+        response = eb.describe_configuration_settings({
+          application_name: application,
+          template_name:    name
+        })
+      # TODO: verify this error exists in sdk v2
+      rescue Aws::ElasticBeanstalk::Errors::InvalidParameterValue => e
         if e.message.start_with? "No Configuration Template named"
           return false
         end
@@ -28,8 +27,8 @@ module Automan::Beanstalk
         raise RequestFailedError, "describe_configuration_settings failed: #{response.error}"
       end
 
-      response.data[:configuration_settings].each do |settings|
-        if settings[:application_name] == application && settings[:template_name] == name
+      response.configuration_settings.each do |conf|
+        if conf.application_name == application && conf.template_name == name
           return true
         end
       end
@@ -38,16 +37,16 @@ module Automan::Beanstalk
     end
 
     def delete_config_template
-      opts = {
+      response = eb.delete_configuration_template({
         application_name: application,
         template_name:    name
-      }
-
-      response = eb.delete_configuration_template opts
+      })
 
       unless response.successful?
         raise RequestFailedError, "delete_configuration_template failed: #{response.error}"
       end
+
+      response
     end
 
     # config_option files are stored in json format compatible
@@ -73,8 +72,7 @@ module Automan::Beanstalk
       json_config = ""
 
       if looks_like_s3_path? template
-        bucket, key = parse_s3_path template
-        json_config = s3.buckets[bucket].objects[key].read
+        json_config = s3_read(template)
       else
         json_config = File.read template
       end
@@ -87,18 +85,18 @@ module Automan::Beanstalk
 
     # where are we getting configuration data?
     def create_config_template
-      opts = {
+      response = eb.create_configuration_template({
         application_name:    application,
         template_name:       name,
         solution_stack_name: platform,
         option_settings:     configuration_options
-      }
-
-      response = eb.create_configuration_template opts
+      })
 
       unless response.successful?
         raise RequestFailedError, "create_configuration_template failed: #{response.error}"
       end
+
+      response
     end
 
     def create

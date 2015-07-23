@@ -79,40 +79,32 @@ module Automan::Beanstalk
     # Terminating
     # Terminated
     def environment_status
-      opts = {
+      response = eb.describe_environments({
         environment_names: [eb_environment_name]
-      }
-
-      response = eb.describe_environments opts
+      })
 
       unless response.successful?
-        logger.error "describe_environments failed: #{response.error}"
-        exit 1
+        raise RequestFailedError, "describe_environments failed: #{response.error}"
       end
 
-      status = nil
-      response.data[:environments].each do |env|
-        if env[:environment_name] == eb_environment_name
-          status = env[:status]
-          break
+      response.environments.each do |env|
+        if env.environment_name == eb_environment_name
+          return env.status
         end
       end
-      status
+      nil
     end
 
     def update_environment
       logger.info "updating environment #{eb_environment_name} with version #{version_label}"
 
-      opts = {
+      response = eb.update_environment({
         environment_name: eb_environment_name,
         version_label:    version_label
-      }
-
-      response = eb.update_environment opts
+      })
 
       unless response.successful?
-        logger.error "update_environment failed: #{response.error}"
-        exit 1
+        raise RequestFailedError, "update_environment failed: #{response.error}"
       end
 
     end
@@ -120,40 +112,32 @@ module Automan::Beanstalk
     def create_environment
       logger.info "creating environment #{eb_environment_name} for #{name} with version #{version_label}"
 
-      opts = {
+      response = eb.create_environment({
         application_name: name,
         environment_name: eb_environment_name,
         version_label:    version_label,
         template_name:    configuration_template,
         cname_prefix:     eb_environment_name
-      }
-
-      response = eb.create_environment opts
+      })
 
       unless response.successful?
-        logger.error "create_environment failed: #{response.error}"
-        exit 1
+        raise RequestFailedError, "create_environment failed: #{response.error}"
       end
 
     end
 
-    def get_version
-      v = Automan::Beanstalk::Version.new
-      v.application = name
-      v.label = version_label
-      v
+    def app
+      app = Automan::Beanstalk::Application.new(name: name)
     end
 
     def ensure_version_exists
-      version = get_version()
-
-      if version.exists?
+      if app.version_exists?(version_label)
         logger.warn "version #{version_label} for #{name} already exists. Not creating."
       else
-        version.create(package)
+        app.create_version(package, version_label)
 
         if number_to_keep > 0
-          version.cull_versions(number_to_keep)
+          app.cull_versions(number_to_keep)
         end
       end
     end

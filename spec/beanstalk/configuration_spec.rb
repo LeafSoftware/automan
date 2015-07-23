@@ -1,11 +1,9 @@
-require "automan"
+require "spec_helper"
 
 describe Automan::Beanstalk::Configuration do
-  subject(:c) do
-    AWS.stub!
-    c = Automan::Beanstalk::Configuration.new
-    c.logger = Logger.new('/dev/null')
-    c
+  before(:each) do
+    subject.application = 'foo'
+    subject.name        = 'foo-template'
   end
 
   it { should respond_to :name }
@@ -21,12 +19,23 @@ describe Automan::Beanstalk::Configuration do
   it { should respond_to :update }
 
   describe '#config_template_exists?' do
-
     it 'returns false if raises InvalidParameterValue with missing config template message' do
-      error = AWS::ElasticBeanstalk::Errors::InvalidParameterValue.new('No Configuration Template named')
-      subject.eb = double()
-      allow(subject.eb).to receive(:describe_configuration_settings).and_raise(error)
+      error = Aws::ElasticBeanstalk::Errors::InvalidParameterValue.new(nil,'No Configuration Template named')
+      subject.eb.stub_responses(:describe_configuration_settings, error )
       expect(subject.config_template_exists?).to be_falsey
+    end
+
+    it 'returns true if application and template name exists in response' do
+      resp = {
+        configuration_settings: [
+          {
+            application_name: subject.application,
+            template_name:    subject.name
+          }
+        ]
+      }
+      subject.eb.stub_responses(:describe_configuration_settings, resp)
+      expect(subject.config_template_exists?).to be_truthy
     end
   end
 

@@ -1,4 +1,4 @@
-require 'automan'
+require 'spec_helper'
 require 'wait'
 
 describe Automan::Beanstalk::Router do

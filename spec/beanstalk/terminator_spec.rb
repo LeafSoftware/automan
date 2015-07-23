@@ -1,4 +1,4 @@
-require 'automan'
+require 'spec_helper'
 
 describe Automan::Beanstalk::Terminator do
   it { should respond_to :name }
@@ -6,52 +6,64 @@ describe Automan::Beanstalk::Terminator do
   it { should respond_to :environment_exists? }
 
   describe '#environment_exists?' do
-    subject(:t) do
-      AWS.stub!
-      t = Automan::Beanstalk::Terminator.new
-      t.logger = Logger.new('/dev/null')
-      t
-    end
-
     it "returns false if environment does not exist" do
-      resp = subject.eb.stub_for :describe_environments
-      resp.data[:environments] = [{}]
+      subject.eb.stub_responses(:describe_environments, {environments: []})
       expect(subject.environment_exists?('foo')).to be_falsey
     end
 
     it "returns false if environment is in Terminated state" do
-      resp = subject.eb.stub_for :describe_environments
-      resp.data[:environments] = [{environment_name: 'foo', status: 'Terminated'}]
+      resp = {
+        environments: [
+          {
+            environment_name: 'foo',
+            status: 'Terminated'
+          }
+        ]
+      }
+      subject.eb.stub_responses(:describe_environments, resp)
       expect(subject.environment_exists?('foo')).to be_falsey
     end
 
     it "returns false if environment is in Terminating state" do
-      resp = subject.eb.stub_for :describe_environments
-      resp.data[:environments] = [{environment_name: 'foo', status: 'Terminating'}]
+      resp = {
+        environments: [
+          {
+            environment_name: 'foo',
+            status: 'Terminating'
+          }
+        ]
+      }
+      subject.eb.stub_responses(:describe_environments, resp)
       expect(subject.environment_exists?('foo')).to be_falsey
     end
 
     it "returns true if environment does exist" do
-      resp = subject.eb.stub_for :describe_environments
-      resp.data[:environments] = [{environment_name: 'foo'}]
+      resp = {
+        environments: [
+          {
+            environment_name: 'foo'
+          }
+        ]
+      }
+      subject.eb.stub_responses(:describe_environments, resp)
       expect(subject.environment_exists?('foo')).to be_truthy
     end
 
     it "returns true if environment is in Ready state" do
-      resp = subject.eb.stub_for :describe_environments
-      resp.data[:environments] = [{environment_name: 'foo', status: 'Ready'}]
+      resp = {
+        environments: [
+          {
+            environment_name: 'foo',
+            status: 'Ready'
+          }
+        ]
+      }
+      subject.eb.stub_responses(:describe_environments, resp)
       expect(subject.environment_exists?('foo')).to be_truthy
     end
   end
 
   describe '#terminate' do
-    subject(:t) do
-      AWS.stub!
-      t = Automan::Beanstalk::Terminator.new
-      t.logger = Logger.new('/dev/null')
-      t
-    end
-
     it 'should call #terminate_environment if the environment exists' do
       allow(subject).to receive(:environment_exists?).and_return(true)
       expect(subject).to receive :terminate_environment
