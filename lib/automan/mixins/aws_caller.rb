@@ -117,7 +117,7 @@ module Automan
       attr_writer :ec2
       def ec2
         if @ec2.nil?
-          @ec2 = AWS::EC2.new
+          @ec2 = Aws::EC2::Resource.new
         end
         @ec2
       end

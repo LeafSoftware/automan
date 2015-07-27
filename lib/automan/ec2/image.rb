@@ -18,22 +18,19 @@ module Automan::Ec2
       })
     end
 
-    def find_inst
-      inst = nil
-      if !instance.nil?
-        inst = ec2.instances[instance]
-      end
-      inst
-    end
-
     def create
-      inst = find_inst
-      myname = default_image_name
-      logger.info "Creating image #{myname} for #{inst.id}"
-      newami = ec2.images.create(instance_id: instance, name: myname, no_reboot: true)
-      if prune == true
-        set_prunable(newami)
-      end
+      image_name = default_image_name
+
+      logger.info "Creating image #{myname} for #{instance}"
+      # TODO: verify instance exists
+      inst = ec2.instance(instance)
+
+      image = inst.create_image({
+        name: image_name,
+        no_reboot: true
+      })
+
+      set_prunable(image) if prune
     end
 
     def is_more_than_month_old?(mytime)
@@ -49,62 +46,70 @@ module Automan::Ec2
       return name + "-" + stime
     end
 
-    def image_snapshot_exists?(image)
-      !image_snapshot(image).nil?
+    def image_snapshot_exists?(image_id)
+      !image_snapshot(image_id).nil?
     end
 
-    def image_snapshot(image)
-      image.block_devices.each do |device|
-        if !device.nil? &&
-           !device[:ebs].nil? &&
-           !device[:ebs][:snapshot_id].nil?
+    # HACK: assumes one block device on the image
+    def image_snapshot(image_id)
+      image = ec2.image(image_id)
+      bdm = image.block_device_mappings.first
 
-          return device[:ebs][:snapshot_id]
-        end
+      if !bdm.nil? && !bdm.ebs.nil? && !bdm.ebs.snapshot_id.nil?
+        return bdm.ebs.snapshot_id
       end
+
       nil
     end
 
-    def set_prunable(newami)
-      logger.info "Setting prunable for AMI #{newami.image_id}"
-      newami.tags["CanPrune"] = "yes"
+    def set_prunable(image)
+      logger.info "Setting prunable for AMI #{image.image_id}"
+      image.create_tags({
+        tags: [
+          { key: 'CanPrune', value: 'yes' }
+        ]
+      })
 
       wait.until do
         logger.info "Waiting for a valid snapshot so we can tag it."
-        image_snapshot_exists? newami
+        image_snapshot_exists? image.id
       end
 
-      snapshot = image_snapshot(newami)
+      snapshot = image_snapshot(image.id)
       logger.info "Setting prunable for snapshot #{snapshot}"
-      ec2.snapshots[snapshot].tags["CanPrune"] = "yes"
+      snapshot.create_tags({
+        tags: [
+          { key: 'CanPrune', value: 'yes' }
+        ]
+      })
     end
 
     def my_images
-      ec2.images.with_owner('self')
+      ec2.images(owners: ['self'])
     end
 
     def deregister_images(snaplist)
       my_images.each do |image|
-        my_snapshot = image_snapshot(image)
+        my_snapshot = image_snapshot(image.id)
 
         next unless snaplist.include?(my_snapshot)
 
-        if image.state != :available
+        if image.state != 'available'
           logger.warn "AMI #{image.id} could not be deleted because its state is #{image.state}"
           next
         end
 
-        if image.tags["CanPrune"] == "yes"
+        if image.tags.include?({key: 'CanPrune', value: 'yes'})
           logger.info "Deregistering AMI #{image.id}"
-          image.delete
+          image.deregister
         end
       end
     end
 
     def delete_snapshots(snaplist)
       snaplist.each do |snap|
-        if snap.status != :completed
-          logger.warn "Snapshot #{snap.id} could not be deleted because its status is #{snap.status}"
+        if snap.state != 'completed'
+          logger.warn "Snapshot #{snap.id} could not be deleted because its status is #{snap.state}"
           next
         end
 
@@ -116,12 +121,12 @@ module Automan::Ec2
 
     def prune_amis
       condemned_snaps = []
-      allsnapshots = ec2.snapshots.with_owner('self')
+      allsnapshots = ec2.snapshots(owner_ids: ['self'])
       allsnapshots.each do |onesnapshot|
-        next unless onesnapshot.status == :completed
+        next unless onesnapshot.state == 'completed'
 
         mycreatetime = onesnapshot.start_time
-        if is_more_than_month_old?(mycreatetime) and onesnapshot.tags["CanPrune"] == "yes"
+        if is_more_than_month_old?(mycreatetime) and onesnapshot.tags.include?({name: "CanPrune", value: "yes"})
           logger.info "Adding snapshot #{onesnapshot.id} to condemed list"
           condemned_snaps.push onesnapshot
         end
