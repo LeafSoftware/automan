@@ -2,6 +2,9 @@ require 'automan'
 require 'time'
 require 'wait'
 
+# TODO: wait to convert RDS to aws-sdk-v2
+# The resources just aren't there yet.
+
 module Automan::RDS
   class Snapshot < Automan::Base
     add_option :database,
