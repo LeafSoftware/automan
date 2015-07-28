@@ -18,7 +18,7 @@ module Automan::Cloudformation
     # cache the validation response so we don't keep making api calls
     def validation_response
       if @validation_resp.nil?
-        @validation_resp = cfn.validate_template(template_body: template_contents)
+        @validation_resp = cfn.client.validate_template(template_body: template_contents)
       end
       @validation_resp
     end
