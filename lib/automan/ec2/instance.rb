@@ -4,42 +4,15 @@ module Automan::Ec2
   class Instance < Automan::Base
     add_option :environment, :private_key_file
 
-    def password_data(instance_id)
-      opts = { instance_id: instance_id }
-      response = ec2.client.get_password_data opts
-
-      unless response.successful?
-        raise RequestFailedError, "get_password_data failed: #{response.error}"
-      end
-
-      response.data[:password_data]
-    end
-
-    def decrypt_password(encrypted, private_key)
-      pk = OpenSSL::PKey::RSA.new(private_key)
-      begin
-        decoded = Base64.decode64(encrypted)
-        password = pk.private_decrypt(decoded)
-      rescue OpenSSL::PKey::RSAError => e
-        logger.warn "Decrypt failed: #{e.message}"
-        return nil
-      end
-      password
-    end
-
     def windows_password(instance_id, private_key)
+      pass = nil
+      instance = ec2.instance(instance_id)
       begin
-        encrypted = password_data(instance_id)
-      rescue RequestFailedError => e
-        logger.warn e.message
-        return nil
+        pass = instance.decrypt_windows_password(private_key)
+      rescue Aws::EC2::Errors::ServiceError => e
+        logger.warn "could not decrypt password for #{instance.id}: #{e.message}"
       end
-
-      if encrypted.nil?
-        return nil
-      end
-
-      decrypt_password(encrypted, private_key)
+      pass
     end
 
     def windows_name(ip_address)
@@ -53,15 +26,21 @@ module Automan::Ec2
 
     def show_env
       data = []
-      ec2.instances.with_tag("Name", "*-#{environment}").each do |i|
-        next unless i.status == :running
+      instances = ec2.instances({
+        filters: [
+          name: 'tag:Name',
+          values: [ "*-#{environment}" ]
+        ]
+      })
+      instances.each do |i|
+        next unless i.state.name == 'running'
 
         tokens = []
-        tokens << i.tags.Name
+        tokens << i.tags.find {|x| x.key == 'Name'}.value
         tokens << i.private_ip_address
         tokens << windows_name(i.private_ip_address)
         if i.platform == "windows"
-          tokens << windows_password(i.id, File.read(private_key_file))
+          tokens << windows_password(i.id, private_key_file)
         else
           tokens << ""
         end
