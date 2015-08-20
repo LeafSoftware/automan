@@ -65,7 +65,9 @@ module Automan::RDS
     end
 
     def snapshot_count
-      rds.db_instances[database].snapshots.count
+      AWS.memoize do
+        rds.db_instances[database].snapshots.count
+      end
     end
 
     def create
