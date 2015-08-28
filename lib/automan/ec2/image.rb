@@ -45,7 +45,7 @@ module Automan::Ec2
     end
 
     def default_image_name
-      stime = Time.now.utc.iso8601.gsub(/:/, '')
+      stime = Time.now.utc.iso8601.gsub(/[:+]/, '')
       return name + "-" + stime
     end
 
