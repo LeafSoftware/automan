@@ -7,28 +7,28 @@ module Automan::Cli
     desc "create", "create a snapshot"
 
     option :environment,
-      aliases: "-e",
-      desc: "environment of database to snapshot"
+    aliases: "-e",
+    desc: "environment of database to snapshot"
 
     option :database,
-      aliases: "-d",
-      desc: "name of the database to snapshot"
+    aliases: "-d",
+    desc: "name of the database to snapshot"
 
     option :name,
-      aliases: "-n",
-      desc: "what to name the snapshot"
+    aliases: "-n",
+    desc: "what to name the snapshot"
 
     option :prune,
-      aliases: "-p",
-      type: :boolean,
-      default: true,
-      desc: "make this snapshot prunable and delete other prunable snapshots older than 30 days"
+    aliases: "-p",
+    type: :boolean,
+    default: true,
+    desc: "make this snapshot prunable and delete other prunable snapshots older than 30 days"
 
     option :wait_for_completion,
-      aliases: "-w",
-      type: :boolean,
-      default: false,
-      desc: "wait until snapshot is finished before exiting script"
+    aliases: "-w",
+    type: :boolean,
+    default: false,
+    desc: "wait until snapshot is finished before exiting script"
 
     def create
       if options[:database].nil? && options[:environment].nil?
@@ -47,9 +47,9 @@ module Automan::Cli
     desc "delete", "delete a snapshot"
 
     option :name,
-      required: true,
-      aliases: "-n",
-      desc: "name of snapshot to delete"
+    required: true,
+    aliases: "-n",
+    desc: "name of snapshot to delete"
 
     def delete
       Automan::RDS::Snapshot.new(options).delete
@@ -58,12 +58,12 @@ module Automan::Cli
     desc "latest", "find the most recent snapshot"
 
     option :database,
-      aliases: "-d",
-      desc: "name of the database to snapshot"
+    aliases: "-d",
+    desc: "name of the database to snapshot"
 
     option :environment,
-      aliases: "-e",
-      desc: "environment of database to snapshot"
+    aliases: "-e",
+    desc: "environment of database to snapshot"
 
     def latest
       if options[:database].nil? && options[:environment].nil?
@@ -75,5 +75,25 @@ module Automan::Cli
       Automan::RDS::Snapshot.new(options).latest
     end
 
+    desc "count", "return the number of snapshots"
+
+    option :environment,
+    aliases: "-e",
+    desc: "environment of database to snapshot"
+
+    option :database,
+    aliases: "-d",
+    desc: "name of the database to snapshot"
+
+    def count
+      if options[:database].nil? && options[:environment].nil?
+        puts "Must specify either database or environment"
+        help "count"
+        exit 1
+      end
+
+      Automan::RDS::Snapshot.new(options).count_snapshots
+    end
+     
   end
 end

@@ -66,7 +66,7 @@ module Automan::RDS
 
     def snapshot_count
       AWS.memoize do
-        rds.db_instances[database].snapshots.count
+        rds.db_instances[find_db.id].snapshots.count
       end
     end
 
@@ -217,7 +217,7 @@ module Automan::RDS
     end
 
     def get_all_snapshots
-      rds.db_snapshots
+      rds.db_instances[find_db.id].snapshots
     end
 
     def prunable_snapshots
@@ -243,6 +243,17 @@ module Automan::RDS
             snapshot.delete
           end
         end
+      end
+    end
+
+    def count_snapshots
+      log_options
+      db = find_db
+      if db.nil?
+        logger.info "Database not found"
+      else
+        logger.info "Number of snapshots for database #{db.id} is #{snapshot_count}"
+        logger.info "Number of prunable snapshots for database #{db.id} is #{prunable_snapshots.count}"
       end
     end
 
