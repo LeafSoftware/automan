@@ -217,11 +217,15 @@ module Automan::RDS
     end
 
     def get_all_snapshots
+      rds.snapshots
+    end
+
+    def get_all_env_snapshots
       rds.db_instances[find_db.id].snapshots
     end
 
     def prunable_snapshots
-      snapshots = get_all_snapshots
+      snapshots = get_all_env_snapshots
       snapshots.select { |s| can_prune?(s) }
     end
 
