@@ -8,13 +8,14 @@ module Automan::RDS
                :name,
                :environment,
                :prune,
+               :type,
+               :max_snapshots,
                :wait_for_completion
-
-    attr_accessor :max_snapshots
 
     def initialize(options={})
       @prune = true
       @wait_for_completion = false
+      @max_snapshots = 50
       super
       @wait = Wait.new({
         delay: 30,
@@ -24,9 +25,8 @@ module Automan::RDS
         logger:   @logger
       })
 
-      if ENV['MAX_SNAPSHOTS'].nil?
-        @max_snapshots = 50
-      else
+      # DEPRECATED: use --max-snapshots instead
+      if ENV['MAX_SNAPSHOTS']
         @max_snapshots = ENV['MAX_SNAPSHOTS'].to_i
       end
     end
@@ -83,22 +83,12 @@ module Automan::RDS
 
       wait_until_database_available(db)
 
-      if snapshot_count >= max_snapshots
-        logger.info "Too many snapshots (>= #{max_snapshots}), deleting oldest prunable."
-        old = nil
-        AWS.memoize do
-          old = oldest_prunable_snapshot
-        end
-        logger.info "Deleting #{old.id}"
-        old.delete
-      end
-
       logger.info "Creating snapshot #{myname} for #{db.id}"
       snap = db.create_snapshot(myname)
 
       if prune == true
         logger.info "Setting snapshot to be prunable and tagging environment"
-        set_prunable_and_env(snap,environment)
+        set_prunable_and_env(snap)
       end
 
       if wait_for_completion == true
@@ -118,8 +108,7 @@ module Automan::RDS
     end
 
     def db_environment(db)
-      arn = db_arn(db)
-      return tags(arn)['Name']
+      return db_tags(db)['Name']
     end
 
     def default_snapshot_name(db)
@@ -149,10 +138,14 @@ module Automan::RDS
     end
 
     # tag with CanPrune
-    def set_prunable_and_env(snapshot,environment)
+    def set_prunable_and_env(snapshot)
       opts = {
         resource_name: snapshot_arn(snapshot),
-        tags: [ {key: 'CanPrune', value: 'yes'}, {key: 'Environment', value: environment} ]
+        tags: [
+          { key: 'CanPrune',    value: 'yes'},
+          { key: 'Environment', value: environment},
+          { key: 'Type',        value: type }
+        ]
       }
       response = rds.client.add_tags_to_resource opts
 
@@ -168,7 +161,17 @@ module Automan::RDS
       rds.db_snapshots[name].delete
     end
 
-    def tags(arn)
+    def db_tags(db)
+      arn = db_arn(db)
+      resource_tags(arn)
+    end
+
+    def snapshot_tags(snapshot)
+      arn = snapshot_arn(snapshot)
+      resource_tags(arn)
+    end
+
+    def resource_tags(arn)
       opts = {
         resource_name: arn
       }
@@ -185,67 +188,63 @@ module Automan::RDS
       result
     end
 
-    def can_prune?(snapshot)
-      tagged_can_prune?(snapshot) && available?(snapshot) && manual?(snapshot)
-    end
-
-    def is_env?(snapshot,environment)
-      tagged_env?(snapshot,environment) && available?(snapshot) && manual?(snapshot)
-    end
-
-    def tagged_env?(snapshot,environment)
-      arn = snapshot_arn(snapshot)
-      tags(arn)['Environment']  == environment
-    end
-
-    def tagged_can_prune?(snapshot)
-      arn = snapshot_arn(snapshot)
-      tags(arn)['CanPrune']  == 'yes'
-    end
-
     def available?(snapshot)
       snapshot.status == 'available'
-    end
-
-    def manual?(snapshot)
-      snapshot.snapshot_type == 'manual'
-    end
-
-    # older than a month?
-    def too_old?(time)
-      time.utc < (Time.now.utc - 60*60*24*30)
     end
 
     def get_all_snapshots
       rds.snapshots
     end
 
-    def get_all_env_snapshots
-      rds.db_instances[find_db.id].snapshots
+    # tags = {'mytagkey' => 'mytagvalue', ...}
+    def snapshot_has_tags?(snapshot, tags)
+      snap_tags = snapshot_tags(snapshot)
+      tags.each do |tk,tv|
+        if snap_tags[tk] != tv
+          #logger.info("qtags: #{tags.to_json} snap_tags: #{snap_tags.to_json}")
+          return false
+        end
+      end
+      true
     end
 
-    def prunable_snapshots
-      snapshots = get_all_env_snapshots
-      snapshots.select { |s| can_prune?(s) }
+    # tags = {'mytagkey' => 'mytagvalue', ...}
+    def snapshots_with_tags(tags)
+      rds.snapshots.select {|s| snapshot_has_tags?(s, tags)}
     end
 
-    def oldest_prunable_snapshot
-      prunable_snapshots.sort_by { |s| s.created_at }.first
-    end
-
+    #
+    # There is a big broken assumption here!
+    # We enumerate all snapshots of the *current* environment db
+    # What if that db is new and we have snapshots from previous
+    # dbs? The dev1 db is replaced every day!
+    # So prunable_snapshots will only return the list of snapshots
+    # from the *current* dev1 db and ignore all others!
+    #
     def prune_snapshots
       logger.info "Pruning old db snapshots"
 
+      tags = {
+        'Environment' => environment,
+        'Type'        => type,
+        'CanPrune'    => 'yes'
+      }
+      sorted_snaps = nil
       AWS.memoize do
-        prunable_snapshots.each do |snapshot|
+        sorted_snaps = snapshots_with_tags(tags).sort_by {|s| s.created_at}
+      end
 
-          timestamp = snapshot.created_at
-          snapshot_name = snapshot.db_snapshot_identifier
+      logger.info "snaps #{sorted_snaps.count} max #{max_snapshots}"
 
-          if too_old?(timestamp)
-            logger.info "Deleting #{snapshot_name} because it is too old."
-            snapshot.delete
-          end
+      if sorted_snaps.count >= max_snapshots
+        logger.info "Too many snapshots ( #{sorted_snaps.count} >= #{max_snapshots})."
+        number_to_delete = sorted_snaps.count - max_snapshots + 1
+        logger.info "deleting #{number_to_delete}."
+
+        condemned = sorted_snaps.take(number_to_delete)
+        condemned.each do |snap|
+          logger.info "Deleting #{snap.id}"
+          snap.delete
         end
       end
     end
@@ -259,24 +258,6 @@ module Automan::RDS
         logger.info "Number of snapshots for database #{db.id} is #{snapshot_count}"
         logger.info "Number of prunable snapshots for database #{db.id} is #{prunable_snapshots.count}"
       end
-    end
-
-    def latest
-      log_options
-      logger.info "Finding most recent snapshot for #{environment}"
-
-      allsnaps=get_all_snapshots
-
-      envsnaps=[]
-      allsnaps.each do |onesnap|
-        if is_env?(onesnap,environment)
-          envsnaps.push(onesnap)
-        end
-      end
-
-      s=envsnaps.sort_by {|i| i.created_at }.last
-      logger.info "Most recent snapshot is #{s.id}"
-      s.id
     end
   end
 end
