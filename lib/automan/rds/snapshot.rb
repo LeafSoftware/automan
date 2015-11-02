@@ -259,5 +259,16 @@ module Automan::RDS
         logger.info "Number of prunable snapshots for database #{db.id} is #{prunable_snapshots.count}"
       end
     end
+
+    def latest
+      log_options
+      logger.info "Finding most recent snapshot for #{environment}"
+
+      tags = { 'Environment' => environment }
+      s = snapshots_with_tags(tags).sort_by {|s| s.created_at}.last
+
+      logger.info "Most recent snapshot is #{s.id}"
+      s.id
+    end
   end
 end

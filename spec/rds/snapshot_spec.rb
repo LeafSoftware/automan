@@ -58,36 +58,6 @@ describe Automan::RDS::Snapshot do
 
   end
 
-  describe '#tagged_can_prune?' do
-    subject() do
-      AWS.stub!
-      s = Automan::RDS::Snapshot.new
-      s.logger = Logger.new('/dev/null')
-      allow(s).to receive(:snapshot_arn)
-      s
-    end
-
-    it 'returns true if snapshot is tagged with CanPrune=yes' do
-      allow(subject).to receive(:tags).and_return( {'CanPrune' => 'yes'} )
-      expect(subject.tagged_can_prune?( double() )).to be_truthy
-    end
-
-    it 'returns false if snapshot is missing CanPrune tag' do
-      allow(subject).to receive(:tags).and_return( {} )
-      expect(subject.tagged_can_prune?( double() )).to be_falsey
-    end
-
-    it 'returns false if snapshot is tagged with CanPrune=nil' do
-      allow(subject).to receive(:tags).and_return( {'CanPrune' => nil} )
-      expect(subject.tagged_can_prune?( double() )).to be_falsey
-    end
-
-    it 'returns false if snapshot is tagged with CanPrune=foo' do
-      allow(subject).to receive(:tags).and_return( {'CanPrune' => 'foo'} )
-      expect(subject.tagged_can_prune?( double() )).to be_falsey
-    end
-  end
-
   describe '#available?' do
     subject() do
       AWS.stub!
@@ -104,47 +74,6 @@ describe Automan::RDS::Snapshot do
     it 'returns false if status is foo' do
       snap = double(status: 'foo')
       expect(subject.available?(snap)).to be_falsey
-    end
-  end
-
-  describe '#manual?' do
-    let(:snap) { double }
-    subject() do
-      AWS.stub!
-      s = Automan::RDS::Snapshot.new
-      s.logger = Logger.new('/dev/null')
-      s
-    end
-
-    it 'returns true if type is "manual"' do
-      allow(snap).to receive(:snapshot_type).and_return('manual')
-      expect(subject.manual?(snap)).to be_truthy
-    end
-
-    it 'returns false if type is foo' do
-      allow(snap).to receive(:snapshot_type).and_return('foo')
-      expect(subject.manual?(snap)).to be_falsey
-    end
-  end
-
-  describe '#prunable_snapshots' do
-    let(:snap) { double }
-    subject() do
-      AWS.stub!
-      s = Automan::RDS::Snapshot.new
-      s.logger = Logger.new('/dev/null')
-      allow(s).to receive(:get_all_snapshots).and_return( [ snap ] )
-      s
-    end
-
-    it 'includes snapshots which can be pruned' do
-      allow(subject).to receive(:can_prune?).and_return(true)
-      expect(subject.prunable_snapshots).to include(snap)
-    end
-
-    it 'excludes snapshots which should not be pruned' do
-      allow(subject).to receive(:can_prune?).and_return(false)
-      expect(subject.prunable_snapshots).to_not include(snap)
     end
   end
 end
