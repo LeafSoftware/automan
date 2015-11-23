@@ -33,6 +33,12 @@ module Automan::Cli
       desc: "Maximum number of snapshots of this type to retain",
       type: :numeric
 
+    option :quiet,
+      aliases: "-q",
+      desc: "Quiet mode: exit 0 when database does not exist",
+      type: :boolean,
+      default: false
+
     option :wait_for_completion,
       aliases: "-w",
       type: :boolean,

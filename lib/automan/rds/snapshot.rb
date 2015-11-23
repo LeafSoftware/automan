@@ -10,6 +10,7 @@ module Automan::RDS
                :prune,
                :type,
                :max_snapshots,
+               :quiet,
                :wait_for_completion
 
     def initialize(options={})
@@ -76,7 +77,12 @@ module Automan::RDS
       db = find_db
 
       if db.nil? || !db.exists?
-        raise DatabaseDoesNotExistError, "Database for #{environment} does not exist"
+        if quiet
+          logger.warn "Database for #{environment} does not exist"
+          exit
+        else
+          raise DatabaseDoesNotExistError, "Database for #{environment} does not exist"
+        end
       end
 
       myname = name.nil? ? default_snapshot_name(db) : name.dup
@@ -213,14 +219,6 @@ module Automan::RDS
       rds.snapshots.select {|s| snapshot_has_tags?(s, tags)}
     end
 
-    #
-    # There is a big broken assumption here!
-    # We enumerate all snapshots of the *current* environment db
-    # What if that db is new and we have snapshots from previous
-    # dbs? The dev1 db is replaced every day!
-    # So prunable_snapshots will only return the list of snapshots
-    # from the *current* dev1 db and ignore all others!
-    #
     def prune_snapshots
       logger.info "Pruning old db snapshots"
 
