@@ -1,7 +1,7 @@
 require 'json'
 require 'cloudformation-ruby-dsl/cfntemplate'
 
-module <%= app_name.split('_').map {|x| x.capitalize}.join('') %>
+module <%= @app_name.split('_').map {|x| x.capitalize}.join('') %>
   module Helpers
 
     def includes_path

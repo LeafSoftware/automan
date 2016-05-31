@@ -5,7 +5,7 @@ require '<%= @app_name %>/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "<%= @app_name %>"
-  spec.version       = <%= app_name.split('_').map {|x| x.capitalize}.join('') %>::VERSION
+  spec.version       = <%= @app_name.split('_').map {|x| x.capitalize}.join('') %>::VERSION
   spec.authors       = []
   spec.email         = []
   spec.summary       = %q{TODO: Write a short summary. Required.}
