@@ -1,0 +1,7 @@
+{
+  'Mappings' => {
+    'EnvironmentMap' => {
+      dev: { }
+    }
+  }
+}

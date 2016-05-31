@@ -1,0 +1,4 @@
+<script>
+cfn-init.exe -v -c config -s {{ ref('AWS::StackId') }} -r {{ locals[:resource] }} --region {{ ref('AWS::Region') }}
+cfn-signal.exe -e %ERRORLEVEL% -r %ERRORLEVEL% "{{ locals[:wait_handle]}}"
+</script>
