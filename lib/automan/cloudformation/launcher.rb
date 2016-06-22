@@ -50,7 +50,8 @@ module Automan::Cloudformation
     def template_handle(template_path)
       if looks_like_s3_path? template_path
         bucket, key = parse_s3_path template_path
-        return s3.buckets[bucket].objects[key]
+        o = s3.buckets[bucket].objects[key]
+        return o.public_url().to_s()
       else
         return File.read(template_path)
       end
