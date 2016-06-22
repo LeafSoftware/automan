@@ -61,8 +61,8 @@ describe Automan::Cloudformation::Launcher do
       Automan::Cloudformation::Launcher.new
     end
 
-    it "returns an s3 key if it is an s3 path" do
-      expect(subject.template_handle("s3://foo/bar/baz")).to be_a AWS::S3::S3Object
+    it "returns an s3 url if it is an s3 path" do
+      expect(subject.template_handle("s3://foo/bar/baz")).to eq "https://foo.s3.amazonaws.com/bar/baz"
     end
 
     it "returns a string if it is a local file" do
